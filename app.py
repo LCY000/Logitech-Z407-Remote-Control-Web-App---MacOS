@@ -244,6 +244,8 @@ async def manage_connection():
         else:
             fail_count += 1
             print(f"Device not found. Attempt {fail_count}/5...")
+            if CURRENT_OS == 'linux':
+                print(f"\033[93mReminder: Ensure executable has permissions: sudo setcap 'cap_net_raw,cap_net_admin+eip' Z407_Control_Linux\033[0m")
             await asyncio.sleep(3) # Wait before retry
 
 @app.before_serving
