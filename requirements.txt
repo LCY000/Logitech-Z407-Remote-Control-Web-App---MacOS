@@ -1,0 +1,4 @@
+quart
+bleak
+pyinstaller
+pyautogui
