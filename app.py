@@ -316,6 +316,7 @@ async def handle_command(command):
         elif command == 'vol_down_pc': await remote_control.vol_down_pc()
         elif command == 'mute_pc': await remote_control.mute_pc()
         elif command == 'input_aux': await remote_control.input_aux()
+        elif command == 'input_usb': await remote_control.input_usb()
         elif command == 'input_bluetooth': await remote_control.input_bluetooth()
         elif command == 'bluetooth_pair': await remote_control.bluetooth_pair()
         elif command == 'factory_reset': await remote_control.factory_reset()
