@@ -306,7 +306,8 @@
             </button>
         </div>
 
-        <div style="text-align: center; color: #666; font-size: 0.8rem; margin-top: 15px; margin-bottom: 5px;">MASTER VOLUME</div>
+        <div style="text-align: center; color: #666; font-size: 0.8rem; margin-top: 15px; margin-bottom: 5px;">MASTER
+            VOLUME</div>
         <div class="controls">
             <button class="btn" onclick="sendCommand('vol_down')">
                 <span class="icon">➖</span>
@@ -316,7 +317,8 @@
             </button>
         </div>
 
-        <div style="text-align: center; color: #666; font-size: 0.8rem; margin-top: 5px; margin-bottom: 5px;">BASS LEVEL</div>
+        <div style="text-align: center; color: #666; font-size: 0.8rem; margin-top: 5px; margin-bottom: 5px;">BASS LEVEL
+        </div>
         <div class="controls">
             <button class="btn" onclick="sendCommand('bass_down')">
                 <span>Bass ➖</span>
@@ -355,9 +357,11 @@
                 </button>
             </div>
         </div>
-        <div class="controls">
-            <button class="btn" onclick="sendCommand('input_aux')">AUX (Jack)</button>
-            <button class="btn" onclick="sendCommand('input_bluetooth')">BT</button>
+        <div class="controls" style="grid-template-columns: 1fr 1fr 1fr;">
+            <button class="btn" style="padding: 15px; font-size: 1rem;" onclick="sendCommand('input_aux')">AUX</button>
+            <button class="btn" style="padding: 15px; font-size: 1rem;" onclick="sendCommand('input_usb')">USB</button>
+            <button class="btn" style="padding: 15px; font-size: 1rem;"
+                onclick="sendCommand('input_bluetooth')">BT</button>
         </div>
 
         <div style="margin-top: 30px; border-top: 1px solid #333; padding-top: 20px;">
