@@ -6,9 +6,12 @@
 
 This application creates a local web server that connects to your Z407 speakers via Bluetooth Low Energy (BLE). It allows you to control the speakers and your PC's media playback directly from your smartphone, tablet, or another computer on the network.
 
+![Logitech Z407](logi.png)
+
 ---
 
-## ✨ Features
+
+## 🌟 Features
 
 **🎛️ Full Speaker Control:** Play/Pause, Volume Control (with visual feedback).
 
