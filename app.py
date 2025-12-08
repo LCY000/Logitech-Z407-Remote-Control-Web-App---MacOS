@@ -155,6 +155,12 @@ class Z407Remote:
             except FileNotFoundError: raise Exception("Falta 'xdotool'.")
         else: pyautogui.press('volumemute')
 
+    # New commands from user request
+    async def bass_up(self): await self._send_command("8000")
+    async def bass_down(self): await self._send_command("8001")
+    async def next_track_speaker(self): await self._send_command("8005")
+    async def prev_track_speaker(self): await self._send_command("8006")
+
 # Helper to find local IP
 def get_ip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -313,6 +319,11 @@ async def handle_command(command):
         elif command == 'factory_reset': await remote_control.factory_reset()
         elif command == 'next': await remote_control.next_track()
         elif command == 'prev': await remote_control.prev_track()
+        # New commands
+        elif command == 'bass_up': await remote_control.bass_up()
+        elif command == 'bass_down': await remote_control.bass_down()
+        elif command == 'next_speaker': await remote_control.next_track_speaker()
+        elif command == 'prev_speaker': await remote_control.prev_track_speaker()
         else:
             return jsonify(success=False, error="Unknown command"), 400
         
