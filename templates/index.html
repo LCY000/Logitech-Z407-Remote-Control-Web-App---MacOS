@@ -54,6 +54,7 @@
             border: 1px solid var(--line);
             border-radius: 28px;
             box-shadow: var(--shadow);
+            -webkit-backdrop-filter: blur(18px);
             backdrop-filter: blur(18px);
             padding: 22px;
         }
@@ -134,6 +135,18 @@
             transform: translateY(2px) scale(0.98);
         }
 
+        button:focus-visible {
+            outline: 3px solid var(--accent);
+            outline-offset: 3px;
+        }
+
+        button:disabled {
+            cursor: not-allowed;
+            color: rgba(244, 239, 230, 0.42);
+            background: rgba(255, 255, 255, 0.05);
+            transform: none;
+        }
+
         .primary {
             min-height: 132px;
             background: var(--accent);
@@ -203,6 +216,15 @@
             line-height: 1.5;
         }
 
+        .unsupported-note {
+            display: none;
+            color: var(--warn);
+        }
+
+        .unsupported-note.visible {
+            display: block;
+        }
+
         .help-list {
             display: grid;
             gap: 10px;
@@ -230,7 +252,7 @@
                     <span class="pill" id="networkMode">Local</span>
                     <span class="pill warn" id="preferredInput">AUX recommended</span>
                 </div>
-                <p class="status-line" id="statusText">Starting speaker scan...</p>
+                <p class="status-line" id="statusText" role="status" aria-live="polite">Starting speaker scan...</p>
             </div>
             <div class="card slider-card">
                 <h2>Estimated Speaker Volume</h2>
@@ -244,13 +266,13 @@
             <div class="card span-7">
                 <h2>Speaker Remote</h2>
                 <div class="control-grid">
-                    <button onclick="sendCommand('prev_speaker')">Previous<span class="btn-label">Speaker</span></button>
                     <button onclick="sendCommand('play_pause')" class="primary">Play / Pause<span class="btn-label">Z407 command</span></button>
+                    <button onclick="sendCommand('prev_speaker')">Previous<span class="btn-label">Speaker</span></button>
                     <button onclick="sendCommand('next_speaker')">Next<span class="btn-label">Speaker</span></button>
                     <button onclick="sendCommand('vol_down')">Volume -<span class="btn-label">Speaker</span></button>
+                    <button onclick="sendCommand('vol_up')">Volume +<span class="btn-label">Speaker</span></button>
                     <button onclick="sendCommand('bass_down')">Bass -<span class="btn-label">Speaker</span></button>
                     <button onclick="sendCommand('bass_up')">Bass +<span class="btn-label">Speaker</span></button>
-                    <button onclick="sendCommand('vol_up')">Volume +<span class="btn-label">Speaker</span></button>
                 </div>
             </div>
 
@@ -264,16 +286,17 @@
                 <p class="status-line">For your Mac setup, use AUX for audio and BLE for remote control.</p>
             </div>
 
-            <div class="card span-7">
+            <div class="card span-7" id="hostMediaCard">
                 <h2 id="hostMediaTitle">Mac Media</h2>
                 <div class="control-grid">
-                    <button onclick="sendCommand('prev')">Previous<span class="btn-label">Mac</span></button>
-                    <button onclick="sendCommand('play_pause_pc')">Play / Pause<span class="btn-label">Mac</span></button>
-                    <button onclick="sendCommand('next')">Next<span class="btn-label">Mac</span></button>
-                    <button onclick="sendCommand('vol_down_pc')">Mac Vol -</button>
-                    <button onclick="sendCommand('mute_pc')">Mute</button>
-                    <button onclick="sendCommand('vol_up_pc')">Mac Vol +</button>
+                    <button data-host-media onclick="sendCommand('prev')">Previous<span class="btn-label">Mac</span></button>
+                    <button data-host-media onclick="sendCommand('play_pause_pc')">Play / Pause<span class="btn-label">Mac</span></button>
+                    <button data-host-media onclick="sendCommand('next')">Next<span class="btn-label">Mac</span></button>
+                    <button data-host-media onclick="sendCommand('vol_down_pc')">Mac Vol -</button>
+                    <button data-host-media onclick="sendCommand('mute_pc')">Mute</button>
+                    <button data-host-media onclick="sendCommand('vol_up_pc')">Mac Vol +</button>
                 </div>
+                <p class="status-line unsupported-note" id="hostMediaUnsupported">Host media keys are not supported on this platform.</p>
             </div>
 
             <div class="card span-5">
@@ -301,28 +324,58 @@
         const networkMode = document.getElementById('networkMode');
         const preferredInput = document.getElementById('preferredInput');
         const setupHint = document.getElementById('setupHint');
+        const hostMediaCard = document.getElementById('hostMediaCard');
         const hostMediaTitle = document.getElementById('hostMediaTitle');
+        const hostMediaUnsupported = document.getElementById('hostMediaUnsupported');
+        const hostMediaButtons = document.querySelectorAll('[data-host-media]');
         const volBar = document.getElementById('volBar');
         const volText = document.getElementById('volText');
         const helpList = document.getElementById('helpList');
 
-        function sendCommand(command) {
-            fetch(`/api/${command}`, { method: 'POST' })
-                .then(response => response.json().then(data => ({ ok: response.ok, data })))
-                .then(({ ok, data }) => {
-                    if (ok && data.success) {
-                        statusText.innerText = `Command sent: ${command}`;
-                        statusText.style.color = 'var(--good)';
-                        setTimeout(updateStatus, 350);
-                    } else {
-                        statusText.innerText = `Error: ${data.error || 'Command failed'}`;
-                        statusText.style.color = 'var(--bad)';
-                    }
-                })
-                .catch(() => {
-                    statusText.innerText = 'Network error. Is the local server still running?';
-                    statusText.style.color = 'var(--bad)';
-                });
+        async function requestJson(url, options = {}) {
+            let response;
+            try {
+                response = await fetch(url, options);
+            } catch (error) {
+                throw new Error(`Network error: ${error.message || 'local server unavailable'}`);
+            }
+
+            const text = await response.text();
+            let data = null;
+            if (text) {
+                try {
+                    data = JSON.parse(text);
+                } catch {
+                    const snippet = text.replace(/\s+/g, ' ').trim().slice(0, 120);
+                    throw new Error(
+                        response.ok
+                            ? `Invalid JSON response: ${snippet || 'empty body'}`
+                            : `HTTP ${response.status}: ${snippet || response.statusText || 'request failed'}`
+                    );
+                }
+            }
+
+            if (!response.ok) {
+                throw new Error(data?.error || data?.message || `HTTP ${response.status}: ${response.statusText || 'request failed'}`);
+            }
+
+            return data;
+        }
+
+        async function sendCommand(command) {
+            try {
+                const data = await requestJson(`/api/${command}`, { method: 'POST' });
+                if (data?.success) {
+                    statusText.innerText = `Command sent: ${command}`;
+                    statusText.style.color = 'var(--good)';
+                    setTimeout(updateStatus, 350);
+                } else {
+                    throw new Error(data?.error || 'Command failed');
+                }
+            } catch (error) {
+                statusText.innerText = `Error: ${error.message}`;
+                statusText.style.color = 'var(--bad)';
+            }
         }
 
         function confirmAction(command, message) {
@@ -339,58 +392,70 @@
             if (target) target.classList.add('recommended');
         }
 
-        function updateStatus() {
-            fetch('/api/status')
-                .then(response => response.json())
-                .then(data => {
-                    connectionStatus.innerText = data.connected ? 'Connected' : data.connectionState || 'Disconnected';
-                    connectionStatus.className = `pill ${data.connected ? 'good' : 'bad'}`;
-                    networkMode.innerText = data.networkMode === 'lan' ? 'LAN enabled' : 'Local only';
-                    preferredInput.innerText = `${(data.preferredInput || 'aux').toUpperCase()} recommended`;
-                    markPreferredInput(data.preferredInput || 'aux');
-
-                    if (data.volume !== undefined) {
-                        volBar.style.width = `${data.volume}%`;
-                        volText.innerText = `${data.volume}%`;
-                    }
-
-                    if (!data.connected && data.lastError) {
-                        statusText.innerText = data.lastError;
-                        statusText.style.color = 'var(--warn)';
-                    }
-                })
-                .catch(() => {
-                    connectionStatus.innerText = 'Offline';
-                    connectionStatus.className = 'pill bad';
-                });
+        function setHostMediaSupport(isSupported) {
+            hostMediaCard.setAttribute('aria-disabled', String(!isSupported));
+            hostMediaButtons.forEach(button => {
+                button.disabled = !isSupported;
+                button.title = isSupported ? '' : 'Host media keys are not supported on this platform.';
+            });
+            hostMediaUnsupported.classList.toggle('visible', !isSupported);
         }
 
-        function loadCapabilities() {
-            fetch('/api/capabilities')
-                .then(response => response.json())
-                .then(data => {
-                    setupHint.innerText = data.setupHint || setupHint.innerText;
-                    hostMediaTitle.innerText = data.platform === 'macos' ? 'Mac Media' : 'Host Media';
-                    helpList.innerHTML = '';
-                    (data.permissionNotes || []).forEach(note => {
-                        const item = document.createElement('li');
-                        item.innerText = note;
-                        helpList.appendChild(item);
-                    });
-                    markPreferredInput(data.preferredInput || 'aux');
-                })
-                .catch(() => {
-                    helpList.innerHTML = '<li>Could not load platform notes.</li>';
-                });
+        async function updateStatus() {
+            try {
+                const data = await requestJson('/api/status');
+                connectionStatus.innerText = data.connected ? 'Connected' : data.connectionState || 'Disconnected';
+                connectionStatus.className = `pill ${data.connected ? 'good' : 'bad'}`;
+                networkMode.innerText = data.networkMode === 'lan' ? 'LAN enabled' : 'Local only';
+                preferredInput.innerText = `${(data.preferredInput || 'aux').toUpperCase()} recommended`;
+                markPreferredInput(data.preferredInput || 'aux');
+
+                if (data.volume !== undefined) {
+                    volBar.style.width = `${data.volume}%`;
+                    volText.innerText = `${data.volume}%`;
+                }
+
+                if (!data.connected && data.lastError) {
+                    statusText.innerText = data.lastError;
+                    statusText.style.color = 'var(--warn)';
+                }
+            } catch (error) {
+                connectionStatus.innerText = 'Offline';
+                connectionStatus.className = 'pill bad';
+                statusText.innerText = error.message;
+                statusText.style.color = 'var(--bad)';
+            }
         }
 
-        function shutdownApp() {
+        async function loadCapabilities() {
+            try {
+                const data = await requestJson('/api/capabilities');
+                setupHint.innerText = data.setupHint || setupHint.innerText;
+                hostMediaTitle.innerText = data.platform === 'macos' ? 'Mac Media' : 'Host Media';
+                setHostMediaSupport(data.hostMediaKeysSupported !== false);
+                helpList.innerHTML = '';
+                (data.permissionNotes || []).forEach(note => {
+                    const item = document.createElement('li');
+                    item.innerText = note;
+                    helpList.appendChild(item);
+                });
+                markPreferredInput(data.preferredInput || 'aux');
+            } catch (error) {
+                helpList.innerHTML = '';
+                const item = document.createElement('li');
+                item.innerText = `Could not load platform notes: ${error.message}`;
+                helpList.appendChild(item);
+            }
+        }
+
+        async function shutdownApp() {
             if (!confirm('Close the Z407 web server? This browser page will stop working.')) return;
-            fetch('/api/shutdown', { method: 'POST' })
-                .then(() => {
-                    document.body.innerHTML = '<main class="shell"><section class="card"><h1>Server closed</h1><p class="subtitle">You can close this tab now.</p></section></main>';
-                })
-                .catch(err => alert(`Error shutting down: ${err}`));
+            try {
+                await requestJson('/api/shutdown', { method: 'POST' });
+                document.body.innerHTML = '<main class="shell"><section class="card"><h1>Server closed</h1><p class="subtitle">You can close this tab now.</p></section></main>';
+            } catch (error) {
+                alert(`Error shutting down: ${error.message}`);
+            }
         }
 
         loadCapabilities();
