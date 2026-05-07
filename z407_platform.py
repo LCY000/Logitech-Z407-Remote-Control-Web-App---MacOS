@@ -4,8 +4,6 @@ import subprocess
 import sys
 from dataclasses import dataclass
 
-import pyautogui
-
 
 @dataclass(frozen=True)
 class PlatformInfo:
@@ -41,14 +39,21 @@ LINUX_XF86_MAP = {
 }
 
 
+def _lookup_media_key(mapping: dict[str, str], command: str) -> str:
+    try:
+        return mapping[command]
+    except KeyError as exc:
+        raise ValueError(f"Unknown media command: {command}") from exc
+
+
 def media_key_name(command: str) -> str:
-    return MEDIA_KEY_MAP[command]
+    return _lookup_media_key(MEDIA_KEY_MAP, command)
 
 
 async def send_host_media_key(command: str, platform: PlatformInfo | None = None) -> None:
     platform = platform or PlatformInfo()
     if platform.key == "linux":
-        key = LINUX_XF86_MAP[command]
+        key = _lookup_media_key(LINUX_XF86_MAP, command)
         try:
             subprocess.Popen(["xdotool", "key", key])
         except FileNotFoundError as exc:
@@ -56,6 +61,8 @@ async def send_host_media_key(command: str, platform: PlatformInfo | None = None
         return
 
     if platform.key in ("macos", "windows"):
+        import pyautogui
+
         pyautogui.press(media_key_name(command))
         return
 
