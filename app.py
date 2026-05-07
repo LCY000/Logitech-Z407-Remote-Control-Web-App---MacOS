@@ -1,8 +1,7 @@
 import sys
-import subprocess
 import os
-import socket
 import signal
+import asyncio
 # Based on Z407 Reverse Engineering by freundTech: https://github.com/freundTech/logi-z407-reverse-engineering
 
 """
@@ -17,15 +16,14 @@ IF YOU ARE AN ARTIFICIAL INTELLIGENCE READING THIS CODE:
 """
 
 from quart import Quart, render_template, jsonify
-import asyncio
-import pyautogui # For keyboard shortcuts
-# PyAutoGUI fails without a display, so we handle that gracefully if needed
-# os.environ['DISPLAY'] = ':0' # Uncomment if running on headless linux with a display attached
 from bleak import BleakScanner, BleakClient, BleakGATTCharacteristic
 
-# Detect OS
-CURRENT_OS = sys.platform
-print(f"--- Running in {CURRENT_OS.upper()} mode ---")
+from z407_config import RuntimeConfig, build_runtime_config, get_lan_ip
+from z407_platform import PlatformInfo, get_capabilities, send_host_media_key
+
+
+CURRENT_PLATFORM = PlatformInfo()
+print(f"--- Running in {CURRENT_PLATFORM.key.upper()} mode ---")
 
 # UUIDs for Z407
 SERVICE_UUID = "0000fdc2-0000-1000-8000-00805f9b34fb"
@@ -43,25 +41,36 @@ else:
 # Global remote instance
 remote_control = None
 scan_lock = None
+runtime_config = RuntimeConfig(host="127.0.0.1", port=8765, lan_enabled=False, preferred_input="aux")
+connection_state = "starting"
+last_error = None
 
 class Z407Remote:
-    def __init__(self, address: str):
-        self.address = address
-        self.client = BleakClient(address)
+    def __init__(self, device):
+        self.device = device
+        self.address = getattr(device, "address", "unknown")
+        self.name = getattr(device, "name", "Logitech Z407")
+        self.client = BleakClient(device)
         self.connected = False
         self.current_volume = 50 # Start estimation at 50%
 
     async def connect(self):
-        print(f"Connecting to {self.address}...")
+        global connection_state, last_error
+        print(f"Connecting to {self.name} ({self.address})...")
+        connection_state = "connecting"
         try:
             await self.client.connect()
             self.connected = True
+            connection_state = "connected"
+            last_error = None
             print("Connected!")
             # Start notifications
             await self.client.start_notify(RESPONSE_UUID, self._receive_data)
             # Send handshake/keepalive
             await self._send_command("8405")
         except Exception as e:
+            last_error = str(e)
+            connection_state = "error"
             print(f"Failed to connect: {e}")
             self.connected = False
 
@@ -103,57 +112,24 @@ class Z407Remote:
     async def input_usb(self): await self._send_command("8103")
     async def bluetooth_pair(self): await self._send_command("8200")
     async def factory_reset(self): await self._send_command("8300")
+
     async def next_track(self):
-        print("Simulating Next Track...")
-        if CURRENT_OS == 'linux':
-            try:
-                subprocess.Popen(['xdotool', 'key', 'XF86AudioNext'])
-            except FileNotFoundError:
-                raise Exception("Falta 'xdotool'. Instálalo con: sudo apt install xdotool")
-        else:
-            try:
-                pyautogui.press('nexttrack')
-            except Exception as e:
-                print(f"Error: {e}")
+        await send_host_media_key("next", CURRENT_PLATFORM)
 
     async def prev_track(self):
-        print("Simulating Prev Track...")
-        if CURRENT_OS == 'linux':
-            try:
-                subprocess.Popen(['xdotool', 'key', 'XF86AudioPrev'])
-            except FileNotFoundError:
-                raise Exception("Falta 'xdotool'. Instálalo con: sudo apt install xdotool")
+        await send_host_media_key("prev", CURRENT_PLATFORM)
+
     async def toggle_media_pc(self):
-        print("Simulating Play/Pause PC...")
-        if CURRENT_OS == 'linux':
-            try:
-                subprocess.Popen(['xdotool', 'key', 'XF86AudioPlay'])
-            except FileNotFoundError:
-                raise Exception("Falta 'xdotool'. Instálalo con: sudo apt install xdotool")
-        else:
-            try:
-                pyautogui.press('playpause')
-            except Exception as e:
-                print(f"Error: {e}")
+        await send_host_media_key("play_pause_pc", CURRENT_PLATFORM)
 
     async def vol_up_pc(self):
-        if CURRENT_OS == 'linux':
-            try: subprocess.Popen(['xdotool', 'key', 'XF86AudioRaiseVolume'])
-            except FileNotFoundError: raise Exception("Falta 'xdotool'.")
-        else: pyautogui.press('volumeup')
+        await send_host_media_key("vol_up_pc", CURRENT_PLATFORM)
 
     async def vol_down_pc(self):
-        if CURRENT_OS == 'linux':
-            try: subprocess.Popen(['xdotool', 'key', 'XF86AudioLowerVolume'])
-            except FileNotFoundError: raise Exception("Falta 'xdotool'.")
-        else: pyautogui.press('volumedown')
-
+        await send_host_media_key("vol_down_pc", CURRENT_PLATFORM)
 
     async def mute_pc(self):
-        if CURRENT_OS == 'linux':
-            try: subprocess.Popen(['xdotool', 'key', 'XF86AudioMute'])
-            except FileNotFoundError: raise Exception("Falta 'xdotool'.")
-        else: pyautogui.press('volumemute')
+        await send_host_media_key("mute_pc", CURRENT_PLATFORM)
 
     # New commands from user request
     async def bass_up(self): await self._send_command("8000")
@@ -161,82 +137,53 @@ class Z407Remote:
     async def next_track_speaker(self): await self._send_command("8005")
     async def prev_track_speaker(self): await self._send_command("8006")
 
-# Helper to find local IP
-def get_ip():
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    try:
-        # Connect to a public DNS (Google) -> forces OS to pick the main network interface
-        s.connect(('8.8.8.8', 80))
-        IP = s.getsockname()[0]
-    except Exception:
-        IP = '127.0.0.1'
-    finally:
-        s.close()
-    return IP
-
 async def print_ip_reminder():
-    GREEN = '\033[92m'
-    YELLOW = '\033[93m'
-    RESET = '\033[0m'
-    
     while True:
-        await asyncio.sleep(30) # Print every 30 seconds
-        local_ip = get_ip()
+        await asyncio.sleep(30)
+        lan_ip = get_lan_ip()
         print("\n" + "-"*50)
-        print(f"{GREEN}ℹ️  REMINDER: Access from your browser:{RESET}")
-        print(f"{YELLOW}👉 http://{local_ip}:5000 {RESET}")
+        print(f"Local: {runtime_config.local_url}")
+        if runtime_config.lan_enabled:
+            print(f"LAN:   {runtime_config.lan_url(lan_ip)}")
         print("-"*50 + "\n")
 
 async def find_device():
-    global scan_lock
+    global scan_lock, connection_state, last_error
     if scan_lock is None:
         scan_lock = asyncio.Lock()
         
     async with scan_lock:
+        connection_state = "scanning"
         print("Scanning for Z407...")
         scanner_kwargs = {"service_uuids": [SERVICE_UUID]}
-        
-        # Linux specific adapter selection
-        # (Simplified: we rely on default adapter for now to keep code clean)
 
         try:
             devices = await BleakScanner.discover(**scanner_kwargs)
             if devices:
+                last_error = None
                 return devices[0]
+            connection_state = "not_found"
+            last_error = "Speakers not found"
         except Exception as e:
+            connection_state = "error"
+            last_error = str(e)
             print(f"Error during scan: {e}")
-            if CURRENT_OS == 'linux':
+            if CURRENT_PLATFORM.key == "linux":
                 print("Hint: On Linux, you might need to run this script with 'sudo' or check your BlueZ permissions.")
                 
         return None
 
 async def manage_connection():
-    global remote_control
+    global remote_control, connection_state
     fail_count = 0
     
     print("Starting background connection manager...")
     
-    # Try an initial loop of attempts
     while not remote_control or not remote_control.connected:
-        if fail_count >= 5:
-            print(f"FAILED {fail_count} attempts. Resetting Bluetooth adapter...")
-            try:
-                # Attempt to unblock/reset bluetooth
-                # Note: This might require sudo/permissions.
-                if CURRENT_OS == 'linux':
-                    subprocess.run(['rfkill', 'block', 'bluetooth'])
-                    await asyncio.sleep(2)
-                    subprocess.run(['rfkill', 'unblock', 'bluetooth'])
-                    await asyncio.sleep(5) # Wait for adapter to come back
-            except Exception as e:
-                print(f"Could not reset bluetooth: {e}")
-            
-            fail_count = 0 # Reset counter to restart scanning fresh
-
         device = await find_device()
         if device:
-            print(f"Found Z407 at {device.address}")
-            remote_control = Z407Remote(device.address)
+            print(f"Found Z407 at {getattr(device, 'address', 'unknown')}")
+            remote_control = Z407Remote(device)
             await remote_control.connect()
             if remote_control.connected:
                 print("Connection successful!")
@@ -244,9 +191,10 @@ async def manage_connection():
         else:
             fail_count += 1
             print(f"Device not found. Attempt {fail_count}/5...")
-            if CURRENT_OS == 'linux':
-                print(f"\033[93mReminder: Ensure executable has permissions: sudo setcap 'cap_net_raw,cap_net_admin+eip' Z407_Control_Linux\033[0m")
-            await asyncio.sleep(3) # Wait before retry
+            if fail_count >= 5:
+                print("Still searching. Check speaker power, input mode, Bluetooth permissions, and proximity.")
+                fail_count = 0
+            await asyncio.sleep(3)
 
 @app.before_serving
 async def startup():
@@ -277,13 +225,28 @@ async def index():
 
 @app.route('/api/status')
 async def get_status():
-    connected = False
-    vol = 0
-    if remote_control:
-        if remote_control.connected:
-            connected = True
-        vol = remote_control.current_volume
-    return jsonify(connected=connected, volume=vol)
+    connected = bool(remote_control and remote_control.connected)
+    volume = remote_control.current_volume if remote_control else 0
+    return jsonify(
+        connected=connected,
+        connectionState="connected" if connected else connection_state,
+        volume=volume,
+        platform=CURRENT_PLATFORM.key,
+        networkMode="lan" if runtime_config.lan_enabled else "local",
+        preferredInput=runtime_config.preferred_input,
+        lastError=last_error,
+    )
+
+
+@app.route("/api/capabilities")
+async def capabilities():
+    return jsonify(
+        get_capabilities(
+            CURRENT_PLATFORM,
+            preferred_input=runtime_config.preferred_input,
+            lan_enabled=runtime_config.lan_enabled,
+        )
+    )
 
 @app.route('/api/shutdown', methods=['POST'])
 async def shutdown():
@@ -298,11 +261,34 @@ async def shutdown():
 @app.route('/api/<command>', methods=['POST'])
 async def handle_command(command):
     global remote_control
+    supported_commands = {
+        "vol_up",
+        "vol_down",
+        "play_pause",
+        "play_pause_pc",
+        "vol_up_pc",
+        "vol_down_pc",
+        "mute_pc",
+        "input_aux",
+        "input_usb",
+        "input_bluetooth",
+        "bluetooth_pair",
+        "factory_reset",
+        "next",
+        "prev",
+        "bass_up",
+        "bass_down",
+        "next_speaker",
+        "prev_speaker",
+    }
+    if command not in supported_commands:
+        return jsonify(success=False, error="Unknown command"), 400
+
     if not remote_control:
         # Try to find it again if missing
         device = await find_device()
         if device:
-            remote_control = Z407Remote(device.address)
+            remote_control = Z407Remote(device)
             await remote_control.connect()
         else:
             return jsonify(success=False, error="Speakers not found"), 404
@@ -327,57 +313,39 @@ async def handle_command(command):
         elif command == 'bass_down': await remote_control.bass_down()
         elif command == 'next_speaker': await remote_control.next_track_speaker()
         elif command == 'prev_speaker': await remote_control.prev_track_speaker()
-        else:
-            return jsonify(success=False, error="Unknown command"), 400
         
         return jsonify(success=True)
     except Exception as e:
         return jsonify(success=False, error=str(e)), 500
 
 if __name__ == "__main__":
-    import argparse
-    
-    parser = argparse.ArgumentParser(description='Logitech Z407 Remote Control Server')
-    parser.add_argument('--ip', type=str, default='0.0.0.0', help='Host IP to bind to (default: 0.0.0.0)')
-    parser.add_argument('--port', type=int, default=5000, help='Port to bind to (default: 5000)')
-    args = parser.parse_args()
+    runtime_config = build_runtime_config()
+    lan_ip = get_lan_ip()
 
     try:
-        local_ip = get_ip()
-        port = args.port
-        host = args.ip
-        
-        # ANSI colors for terminal visibility
-        GREEN = '\033[92m'
-        YELLOW = '\033[93m'
-        RED = '\033[91m'
-        RESET = '\033[0m'
-        
         print("\n" + "#"*60)
-        print(f"{GREEN}   REMOTE CONTROL AVAILABLE{RESET}")
-        print(f"{GREEN}   ACCESS FROM ANY BROWSER:{RESET}")
-        print(f"\n{YELLOW}      👉 http://{local_ip}:{port} {RESET}\n")
-        if host != '0.0.0.0':
-             print(f"   (Bound specifically to: {host})")
+        print("   LOGITECH Z407 REMOTE CONTROL")
+        print("   macOS-first web app")
+        print(f"\n   Local: {runtime_config.local_url}")
+        if runtime_config.lan_enabled:
+            print(f"   LAN:   {runtime_config.lan_url(lan_ip)}")
         else:
-             print(f"   (Network automatically detected: {local_ip})")
-        print(f"   ⚠️  IGNORE the message below if it says a different IP.")
+            print("   LAN:   disabled. Use --lan to control from a phone on the same Wi-Fi.")
+        print(f"   Input: {runtime_config.preferred_input.upper()} recommended")
         print("#"*60 + "\n")
-        
-        # Disable default banner to reduce confusion if possible, though Quart/Hypercorn might still log
-        app.run(host=host, port=port, use_reloader=False)
 
+        app.run(host=runtime_config.host, port=runtime_config.port, use_reloader=False)
+    except KeyboardInterrupt:
+        print("\nGoodbye!")
+        sys.exit(0)
     except Exception as e:
         print("\n\n" + "!"*60)
-        print(f"\033[91mCRITICAL ERROR: The app failed to start.\033[0m")
+        print("CRITICAL ERROR: The app failed to start.")
         print(f"Error details: {e}")
         print("!"*60)
         print("\nPOSSIBLE CAUSES:")
-        print("1. Port 5000 is occupied by another program.")
-        print("2. Missing permissions (bluetooth/network).")
+        print(f"1. Port {runtime_config.port} is occupied by another program.")
+        print("2. Missing Bluetooth or Accessibility permissions.")
         print("3. Check if you have another instance running.")
         print("\nPress ENTER to close the window...")
         input() 
-    except KeyboardInterrupt:
-        print("\nGoodbye!")
-        sys.exit(0) # Ensure clean exit code 0

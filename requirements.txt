@@ -3,3 +3,4 @@ bleak
 pyinstaller
 pyautogui
 pytest
+pytest-asyncio
