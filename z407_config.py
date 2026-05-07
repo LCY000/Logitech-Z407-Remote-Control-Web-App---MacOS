@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import ipaddress
 import socket
 from dataclasses import dataclass
 
@@ -9,6 +10,7 @@ DEFAULT_HOST = "127.0.0.1"
 DEFAULT_LAN_HOST = "0.0.0.0"
 DEFAULT_PORT = 8765
 DEFAULT_PREFERRED_INPUT = "aux"
+LOCAL_HOSTNAMES = {"localhost"}
 
 
 @dataclass(frozen=True)
@@ -47,7 +49,7 @@ def build_runtime_config(argv: list[str] | None = None) -> RuntimeConfig:
 
     if host is None:
         host = DEFAULT_LAN_HOST if args.lan else DEFAULT_HOST
-    elif host not in ("127.0.0.1", "localhost"):
+    elif not _is_loopback_host(host):
         lan_enabled = True
 
     return RuntimeConfig(
@@ -58,12 +60,37 @@ def build_runtime_config(argv: list[str] | None = None) -> RuntimeConfig:
     )
 
 
-def get_lan_ip() -> str:
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+def _is_loopback_host(host: str) -> bool:
+    if host.casefold() in LOCAL_HOSTNAMES:
+        return True
+
     try:
+        return ipaddress.ip_address(host).is_loopback
+    except ValueError:
+        return _is_ipv4_loopback_shorthand(host)
+
+
+def _is_ipv4_loopback_shorthand(host: str) -> bool:
+    parts = host.split(".")
+    if not 1 <= len(parts) <= 4:
+        return False
+
+    try:
+        octets = [int(part, 10) for part in parts]
+    except ValueError:
+        return False
+
+    return all(0 <= octet <= 255 for octet in octets) and octets[0] == 127
+
+
+def get_lan_ip() -> str:
+    s = None
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.connect(("8.8.8.8", 80))
         return s.getsockname()[0]
     except Exception:
         return "127.0.0.1"
     finally:
-        s.close()
+        if s is not None:
+            s.close()

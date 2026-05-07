@@ -1,3 +1,5 @@
+import pytest
+
 from z407_config import RuntimeConfig, build_runtime_config, get_lan_ip
 
 
@@ -26,6 +28,27 @@ def test_manual_ip_and_port_override_defaults():
     assert config.lan_enabled is True
 
 
+def test_manual_ipv4_loopback_does_not_enable_lan():
+    config = build_runtime_config(["--ip", "127.0.0.2"])
+
+    assert config.host == "127.0.0.2"
+    assert config.lan_enabled is False
+
+
+def test_manual_ipv4_shorthand_loopback_does_not_enable_lan():
+    config = build_runtime_config(["--ip", "127.1"])
+
+    assert config.host == "127.1"
+    assert config.lan_enabled is False
+
+
+def test_manual_ipv6_loopback_does_not_enable_lan():
+    config = build_runtime_config(["--ip", "::1"])
+
+    assert config.host == "::1"
+    assert config.lan_enabled is False
+
+
 def test_runtime_urls_include_local_and_lan_when_lan_enabled():
     config = RuntimeConfig(host="0.0.0.0", port=8765, lan_enabled=True, preferred_input="aux")
 
@@ -51,3 +74,21 @@ def test_get_lan_ip_returns_loopback_fallback_when_socket_fails(monkeypatch):
     monkeypatch.setattr("z407_config.socket", BrokenSocketModule())
 
     assert get_lan_ip() == "127.0.0.1"
+
+
+def test_get_lan_ip_returns_loopback_fallback_when_socket_creation_fails(monkeypatch):
+    class BrokenSocketModule:
+        AF_INET = 2
+        SOCK_DGRAM = 2
+
+        def socket(self, *_args):
+            raise OSError("socket unavailable")
+
+    monkeypatch.setattr("z407_config.socket", BrokenSocketModule())
+
+    assert get_lan_ip() == "127.0.0.1"
+
+
+def test_invalid_preferred_input_rejects():
+    with pytest.raises(SystemExit):
+        build_runtime_config(["--preferred-input", "line-in"])
