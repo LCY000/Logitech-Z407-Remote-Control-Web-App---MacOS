@@ -75,9 +75,18 @@ class Z407Remote:
             self.connected = False
 
     async def disconnect(self):
+        global connection_state, last_error
         if self.connected:
-            await self.client.disconnect()
-            self.connected = False
+            try:
+                await self.client.disconnect()
+                self.connected = False
+                connection_state = "disconnected"
+                last_error = None
+            except Exception as e:
+                last_error = str(e)
+                connection_state = "error"
+                self.connected = False
+                raise
 
     async def _receive_data(self, sender: BleakGATTCharacteristic, data: bytearray):
         # Handle Keep Alive or Response logic from speakers
@@ -88,14 +97,23 @@ class Z407Remote:
             self.connected = True
 
     async def _send_command(self, command):
+        global connection_state, last_error
         if not self.connected:
             print("Not connected, trying to reconnect...")
             await self.connect()
+            if not self.connected:
+                error = last_error or "Unable to connect to speakers"
+                last_error = error
+                connection_state = "error"
+                raise RuntimeError(error)
         try:
             await self.client.write_gatt_char(COMMAND_UUID, bytes.fromhex(command), response=False)
         except Exception as e:
+            last_error = str(e)
+            connection_state = "error"
             print(f"Error sending command: {e}")
             self.connected = False
+            raise
 
     # Commands
     async def volume_up(self): 
