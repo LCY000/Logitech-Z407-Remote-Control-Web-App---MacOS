@@ -2,3 +2,4 @@ quart
 bleak
 pyinstaller
 pyautogui
+pytest
