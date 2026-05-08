@@ -31,6 +31,7 @@ SERVICE_UUID = "0000fdc2-0000-1000-8000-00805f9b34fb"
 COMMAND_UUID = "c2e758b9-0e78-41e0-b0cb-98a593193fc5"
 RESPONSE_UUID = "b84ac9c6-29c5-46d4-bba1-9d534784330f"
 Z407_NAME_MARKERS = ("z407", "zs283")
+SCAN_TIMEOUT_SECONDS = 8.0
 
 
 if getattr(sys, 'frozen', False):
@@ -229,12 +230,12 @@ async def find_device():
         scanner_kwargs = {"service_uuids": [SERVICE_UUID]}
 
         try:
-            devices = await BleakScanner.discover(**scanner_kwargs)
+            devices = await BleakScanner.discover(timeout=SCAN_TIMEOUT_SECONDS, **scanner_kwargs)
             if devices:
                 last_error = None
                 return devices[0]
 
-            devices = await BleakScanner.discover()
+            devices = await BleakScanner.discover(timeout=SCAN_TIMEOUT_SECONDS)
             for device in devices:
                 if is_z407_device(device):
                     last_error = None

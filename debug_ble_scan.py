@@ -3,6 +3,8 @@ from __future__ import annotations
 import argparse
 import asyncio
 
+from collections import Counter
+
 from bleak import BleakScanner
 from bleak.exc import BleakBluetoothNotAvailableError, BleakError
 
@@ -30,7 +32,7 @@ def describe_device(device) -> str:
     return f"- name={name!r} address={address!r} rssi={rssi!r} metadata={metadata!r}{marker}"
 
 
-async def scan(duration: float) -> int:
+async def scan_once(duration: float) -> tuple[list, list]:
     try:
         print(f"Scanning BLE devices for {duration:g}s...")
         print("First pass: Z407 service UUID filter")
@@ -47,15 +49,45 @@ async def scan(duration: float) -> int:
     except BleakBluetoothNotAvailableError as exc:
         print(f"Bluetooth unavailable to Python/CoreBluetooth: {exc}")
         print("Check macOS Bluetooth is on and Terminal/Python has Bluetooth permission.")
-        return 3
+        raise
     except BleakError as exc:
         print(f"BLE scan failed: {exc}")
-        return 4
+        raise
 
-    candidates = [device for device in [*filtered, *devices] if is_z407_like(device)]
+    return filtered, devices
+
+
+async def scan(duration: float, rounds: int, pause: float) -> int:
+    all_filtered = []
+    all_devices = []
+
+    for round_number in range(1, rounds + 1):
+        if rounds > 1:
+            print(f"\n=== Round {round_number}/{rounds} ===")
+
+        try:
+            filtered, devices = await scan_once(duration)
+        except BleakBluetoothNotAvailableError:
+            return 3
+        except BleakError:
+            return 4
+        all_filtered.extend(filtered)
+        all_devices.extend(devices)
+
+        if round_number < rounds:
+            await asyncio.sleep(pause)
+
+    candidates = [device for device in [*all_filtered, *all_devices] if is_z407_like(device)]
     print(f"\nZ407 candidates: {len(candidates)}")
     for device in candidates:
         print(describe_device(device))
+
+    seen_addresses = Counter(getattr(device, "address", "unknown") for device in [*all_filtered, *all_devices])
+    repeated = [address for address, count in seen_addresses.items() if count > 1]
+    if repeated:
+        print("\nRepeated BLE addresses across passes:")
+        for address in repeated:
+            print(f"- {address}: {seen_addresses[address]} times")
 
     return 0 if candidates else 2
 
@@ -63,8 +95,10 @@ async def scan(duration: float) -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Debug macOS BLE discovery for Logitech Z407.")
     parser.add_argument("--duration", type=float, default=8.0, help="Scan duration per pass in seconds")
+    parser.add_argument("--rounds", type=int, default=1, help="Number of filtered/unfiltered scan rounds")
+    parser.add_argument("--pause", type=float, default=2.0, help="Pause between rounds in seconds")
     args = parser.parse_args()
-    return asyncio.run(scan(args.duration))
+    return asyncio.run(scan(args.duration, args.rounds, args.pause))
 
 
 if __name__ == "__main__":

@@ -103,7 +103,10 @@ async def test_find_device_falls_back_to_unfiltered_name_scan(monkeypatch):
     device = await z407_app.find_device()
 
     assert device.name == "ZS283A_develop_ot"
-    assert calls == [{"service_uuids": [z407_app.SERVICE_UUID]}, {}]
+    assert calls == [
+        {"timeout": z407_app.SCAN_TIMEOUT_SECONDS, "service_uuids": [z407_app.SERVICE_UUID]},
+        {"timeout": z407_app.SCAN_TIMEOUT_SECONDS},
+    ]
     assert z407_app.connection_state == "scanning"
     assert z407_app.last_error is None
 
