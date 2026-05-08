@@ -3,6 +3,8 @@ import os
 import signal
 import asyncio
 import logging
+import threading
+import webbrowser
 # Based on Z407 Reverse Engineering by freundTech: https://github.com/freundTech/logi-z407-reverse-engineering
 
 """
@@ -88,6 +90,13 @@ def configure_terminal_logging(config: RuntimeConfig) -> None:
 
 def handle_process_termination(_signum, _frame):
     raise KeyboardInterrupt
+
+
+def open_browser_for_packaged_app(config: RuntimeConfig) -> None:
+    if not getattr(sys, "frozen", False):
+        return
+
+    threading.Timer(1.5, lambda: webbrowser.open(config.local_url)).start()
 
 
 def is_z407_device(device) -> bool:
@@ -414,6 +423,7 @@ if __name__ == "__main__":
         print("   Do not use Ctrl+Z; it suspends the app instead of closing it.")
         print("#"*60 + "\n")
 
+        open_browser_for_packaged_app(runtime_config)
         app.run(host=runtime_config.host, port=runtime_config.port, use_reloader=False)
     except KeyboardInterrupt:
         print("\nGoodbye!")
@@ -427,5 +437,9 @@ if __name__ == "__main__":
         print(f"1. Port {runtime_config.port} is occupied by another program.")
         print("2. Missing Bluetooth or Accessibility permissions.")
         print("3. Check if you have another instance running.")
-        print("\nPress ENTER to close the window...")
-        input() 
+        if sys.stdin.isatty():
+            print("\nPress ENTER to close the window...")
+            input()
+        else:
+            print("\nNo interactive console is available; closing.")
+            sys.exit(1)

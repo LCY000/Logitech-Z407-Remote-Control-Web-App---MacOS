@@ -268,3 +268,6 @@ def test_app_source_mentions_sigterm_and_packaged_quit_support():
 
     assert "signal.SIGTERM" in source
     assert "raise KeyboardInterrupt" in source
+    assert "open_browser_for_packaged_app(runtime_config)" in source
+    assert "webbrowser.open(config.local_url)" in source
+    assert "sys.stdin.isatty()" in source
