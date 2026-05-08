@@ -133,7 +133,9 @@ https://github.com/freundTech/logi-z407-reverse-engineering
 
 這個專案建立在免費的社群工作上。請保留並尊重原作者與 reverse engineering 的貢獻。
 
-This project is 100% free。本專案完全免費。捐款與支持可以幫助原作者投入更多時間與資源，繼續維護這個專案與其他社群作品。
+This project is 100% free。本專案完全免費。使用它、分享它，並保留原始 attribution，本身就已經是在幫助這個專案。
+
+如果你想提供額外支持，任何捐款都能幫助原作者投入更多時間與資源，繼續維護這個專案與其他社群作品。也感謝所有已經支持過這個專案的人。
 
 原作者支持頁面：
 https://androrama.com

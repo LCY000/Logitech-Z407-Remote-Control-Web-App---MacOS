@@ -45,6 +45,32 @@ runtime_config = RuntimeConfig(host="127.0.0.1", port=8765, lan_enabled=False, p
 connection_state = "starting"
 last_error = None
 
+HOST_MEDIA_COMMANDS = {
+    "next",
+    "prev",
+    "play_pause_pc",
+    "vol_up_pc",
+    "vol_down_pc",
+    "mute_pc",
+}
+
+BLE_SPEAKER_COMMANDS = {
+    "vol_up",
+    "vol_down",
+    "play_pause",
+    "input_aux",
+    "input_usb",
+    "input_bluetooth",
+    "bluetooth_pair",
+    "factory_reset",
+    "bass_up",
+    "bass_down",
+    "next_speaker",
+    "prev_speaker",
+}
+
+SUPPORTED_COMMANDS = HOST_MEDIA_COMMANDS | BLE_SPEAKER_COMMANDS
+
 class Z407Remote:
     def __init__(self, device):
         self.device = device
@@ -206,6 +232,12 @@ async def manage_connection():
             if remote_control.connected:
                 print("Connection successful!")
                 break
+            fail_count += 1
+            print(f"Connection failed. Attempt {fail_count}/5...")
+            if fail_count >= 5:
+                print("Still trying to connect. Check speaker power, input mode, Bluetooth permissions, and proximity.")
+                fail_count = 0
+            await asyncio.sleep(3)
         else:
             fail_count += 1
             print(f"Device not found. Attempt {fail_count}/5...")
@@ -274,33 +306,20 @@ async def shutdown():
         os.kill(os.getpid(), signal.SIGINT)
     
     app.add_background_task(_shutdown)
-    return jsonify(success=True, message="Apagando...")
+    return jsonify(success=True, message="Shutting down...")
 
 @app.route('/api/<command>', methods=['POST'])
 async def handle_command(command):
     global remote_control
-    supported_commands = {
-        "vol_up",
-        "vol_down",
-        "play_pause",
-        "play_pause_pc",
-        "vol_up_pc",
-        "vol_down_pc",
-        "mute_pc",
-        "input_aux",
-        "input_usb",
-        "input_bluetooth",
-        "bluetooth_pair",
-        "factory_reset",
-        "next",
-        "prev",
-        "bass_up",
-        "bass_down",
-        "next_speaker",
-        "prev_speaker",
-    }
-    if command not in supported_commands:
+    if command not in SUPPORTED_COMMANDS:
         return jsonify(success=False, error="Unknown command"), 400
+
+    if command in HOST_MEDIA_COMMANDS:
+        try:
+            await send_host_media_key(command, CURRENT_PLATFORM)
+            return jsonify(success=True)
+        except Exception as e:
+            return jsonify(success=False, error=str(e)), 500
 
     if not remote_control:
         # Try to find it again if missing
@@ -315,17 +334,11 @@ async def handle_command(command):
         if command == 'vol_up': await remote_control.volume_up()
         elif command == 'vol_down': await remote_control.volume_down()
         elif command == 'play_pause': await remote_control.play_pause()
-        elif command == 'play_pause_pc': await remote_control.toggle_media_pc()
-        elif command == 'vol_up_pc': await remote_control.vol_up_pc()
-        elif command == 'vol_down_pc': await remote_control.vol_down_pc()
-        elif command == 'mute_pc': await remote_control.mute_pc()
         elif command == 'input_aux': await remote_control.input_aux()
         elif command == 'input_usb': await remote_control.input_usb()
         elif command == 'input_bluetooth': await remote_control.input_bluetooth()
         elif command == 'bluetooth_pair': await remote_control.bluetooth_pair()
         elif command == 'factory_reset': await remote_control.factory_reset()
-        elif command == 'next': await remote_control.next_track()
-        elif command == 'prev': await remote_control.prev_track()
         # New commands
         elif command == 'bass_up': await remote_control.bass_up()
         elif command == 'bass_down': await remote_control.bass_down()

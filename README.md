@@ -133,7 +133,9 @@ This is an **unofficial** project and is not affiliated with, endorsed by, or co
 
 This project is based on free community work. Please keep supporting and crediting the original author and reverse engineering work.
 
-This project is 100% free. Donations and support help the original author dedicate time and resources to this project and other community work.
+This project is 100% free. Using it, sharing it, and keeping attribution intact already helps.
+
+If you want to give additional support, any donation helps the original author dedicate more time and resources to this project and other community work. Thanks to everyone who has already supported the project.
 
 Original author support page:
 https://androrama.com

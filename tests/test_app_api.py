@@ -1,3 +1,5 @@
+import asyncio
+
 import pytest
 
 import app as z407_app
@@ -78,6 +80,68 @@ async def test_unknown_command_returns_400_without_scanning(monkeypatch):
     assert response.status_code == 400
     assert payload["success"] is False
     assert payload["error"] == "Unknown command"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("command", ["play_pause_pc", "vol_up_pc"])
+async def test_host_media_commands_do_not_require_ble_discovery(monkeypatch, command):
+    calls = []
+
+    async def fail_if_called():
+        raise AssertionError("find_device should not be called")
+
+    async def fake_send_host_media_key(key, platform):
+        calls.append((key, platform.key))
+
+    z407_app.remote_control = None
+    monkeypatch.setattr(z407_app, "find_device", fail_if_called)
+    monkeypatch.setattr(z407_app, "send_host_media_key", fake_send_host_media_key)
+
+    test_client = z407_app.app.test_client()
+    response = await test_client.post(f"/api/{command}")
+    payload = await response.get_json()
+
+    assert response.status_code == 200
+    assert payload["success"] is True
+    assert calls == [(command, z407_app.CURRENT_PLATFORM.key)]
+
+
+@pytest.mark.asyncio
+async def test_manage_connection_sleeps_after_failed_connect(monkeypatch):
+    class Device:
+        address = "00:11:22:33"
+
+    class FailingRemote:
+        connected = False
+
+        def __init__(self, device):
+            self.device = device
+
+        async def connect(self):
+            self.connected = False
+
+    sleeps = []
+    find_calls = 0
+
+    async def fake_find_device():
+        nonlocal find_calls
+        find_calls += 1
+        if find_calls > 1:
+            raise asyncio.CancelledError()
+        return Device()
+
+    async def fake_sleep(seconds):
+        sleeps.append(seconds)
+
+    z407_app.remote_control = None
+    monkeypatch.setattr(z407_app, "find_device", fake_find_device)
+    monkeypatch.setattr(z407_app, "Z407Remote", FailingRemote)
+    monkeypatch.setattr(z407_app.asyncio, "sleep", fake_sleep)
+
+    with pytest.raises(asyncio.CancelledError):
+        await z407_app.manage_connection()
+
+    assert sleeps == [3]
 
 
 @pytest.mark.asyncio
