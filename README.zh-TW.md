@@ -75,7 +75,9 @@ release/Logitech Z407 Remote Control.app
 
 請使用網頁上的 `Quit` 按鈕，或在終端機按 `Ctrl+C`。
 
-不要用 `Ctrl+Z`。`Ctrl+Z` 只是暫停程式，不是關閉程式，可能讓本機 server 或 BLE 狀態殘留。如果不小心按到 `Ctrl+Z`，請先執行 `jobs` 找到被暫停的 terminal job，再用 `kill %1` 關掉它。把 Z407 拔掉電源再重新接上，通常可以清掉音響端的 Bluetooth 狀態，但不會關掉 Mac 上被暫停的 server。
+如果之前關閉 server 後，下一次重開時網頁無法掃描或連接到 Z407，可以先試著把音響電源拔掉，等幾秒後再重新接上。這通常可以清掉音響端卡住的 Bluetooth 狀態。
+
+在 Terminal 裡請避免使用 `Ctrl+Z`。`Ctrl+Z` 是暫停程式，不是關閉程式。如果不小心按到並看到 suspended job，重新啟動 app 前要先把那個 terminal job 關掉。
 
 ## 手機控制
 

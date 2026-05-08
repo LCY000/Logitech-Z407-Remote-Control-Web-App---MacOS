@@ -8,11 +8,17 @@ if [ "${EUID:-$(id -u)}" -eq 0 ]; then
   exit 1
 fi
 
-if [ ! -d venv ]; then
+if [ ! -d venv ] || [ ! -x venv/bin/python ]; then
   python3 -m venv venv
 fi
 
 source venv/bin/activate
+
+if ! command -v python >/dev/null 2>&1; then
+  deactivate 2>/dev/null || true
+  python3 -m venv --clear venv
+  source venv/bin/activate
+fi
 
 python -m pip install -r requirements.txt -r requirements-dev.txt
 

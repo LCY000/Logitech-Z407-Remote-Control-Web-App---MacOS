@@ -40,4 +40,6 @@ Use the web UI's `Quit` button.
 
 If running from Terminal, `Ctrl+C` is also safe.
 
-Do not use `Ctrl+Z`; it suspends the process instead of closing it. Power-cycling the Z407 can help clear speaker-side Bluetooth state, but it does not stop a suspended server that is still running on the Mac.
+If the web UI cannot find or reconnect to the Z407 after restarting the app, unplug the speaker power, wait a few seconds, and plug it back in. This can clear stale Bluetooth state on the speaker side.
+
+Avoid `Ctrl+Z` in Terminal. It suspends the app instead of closing it. If you accidentally press it and see a suspended job, close that terminal job before starting the app again.

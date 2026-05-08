@@ -75,7 +75,9 @@ For GitHub sharing, the app should be uploaded as a zipped GitHub Release asset.
 
 Use the web UI's `Quit` button or press `Ctrl+C` in the terminal.
 
-Do not use `Ctrl+Z`. It suspends the process instead of closing it and can leave the local server or BLE state stale. If you accidentally suspend the app, run `jobs` to find the suspended terminal job and then `kill %1` to close it. Power-cycling the Z407 can help clear speaker-side Bluetooth state, but it does not stop a suspended server that is still on your Mac.
+If the web UI cannot find or reconnect to the Z407 after restarting the app, try unplugging the speaker power, wait a few seconds, and plug it back in. This can clear stale Bluetooth state on the speaker side.
+
+Avoid `Ctrl+Z` in Terminal. It suspends the app instead of closing it. If you accidentally press it and see a suspended job, close that terminal job before starting the app again.
 
 ## Phone Control
 

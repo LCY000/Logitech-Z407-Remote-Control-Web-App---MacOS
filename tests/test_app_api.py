@@ -243,8 +243,8 @@ def test_ui_labels_distinguish_speaker_and_mac_controls():
     assert "AUX usually sounds better than Bluetooth" in html
     assert "Session Volume Estimate" in html
     assert "Only tracks changes made from this page" in html
-    assert "Use Quit App or Ctrl+C to exit safely" in html
-    assert "Avoid Ctrl+Z" in html
+    assert "Use Quit or Ctrl+C to exit safely" in html
+    assert "unplug speaker power for a few seconds" in html
     assert "const staticHelpNotes = [" in html
     assert "new Set([...staticHelpNotes, ...notes])" in html
     assert "hero-actions" not in html
