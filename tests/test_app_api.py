@@ -1,4 +1,5 @@
 import asyncio
+from pathlib import Path
 
 import pytest
 
@@ -62,7 +63,7 @@ async def test_capabilities_endpoint_returns_aux_first_macos_data(monkeypatch):
     assert response.status_code == 200
     assert payload["platform"] == "macos"
     assert payload["preferredInput"] == "aux"
-    assert payload["setupHint"] == "AUX audio + BLE control"
+    assert payload["setupHint"] == "Choose the Z407 input below. AUX is recommended when your Mac is connected by cable."
 
 
 @pytest.mark.asyncio
@@ -172,3 +173,14 @@ async def test_send_command_failure_raises_and_updates_status():
     assert payload["connected"] is False
     assert payload["connectionState"] == "error"
     assert payload["lastError"] == "write failed"
+
+
+def test_ui_labels_distinguish_speaker_and_mac_controls():
+    html = Path("templates/index.html").read_text()
+
+    assert "Mute / Unmute" in html
+    assert "Speaker volume" in html
+    assert "Subwoofer bass" in html
+    assert "Mac Media Controls" in html
+    assert "These are normal computer media controls" in html
+    assert "AUX usually sounds better than Bluetooth" in html

@@ -4,15 +4,15 @@
 
 [繁體中文 README](README.zh-TW.md)
 
-This app runs a local web server on your Mac and controls the Logitech Z407 over Bluetooth Low Energy (BLE). It is designed for a common Mac setup: **audio through a 3.5mm AUX cable, control through BLE**.
+This app runs a local web server on your Mac and controls the Logitech Z407 over Bluetooth Low Energy (BLE). It works with the Z407's AUX, USB, and Bluetooth inputs. For a common Mac setup, you can keep audio on a 3.5mm AUX cable while BLE is used only for remote-control commands.
 
 ## Features
 
 - macOS-first defaults: `127.0.0.1:8765`, avoiding macOS AirPlay's common port `5000`.
 - Local-only mode by default.
 - Optional LAN mode for phone control on the same Wi-Fi.
-- Speaker controls: play/pause, speaker volume, bass, input source, pairing, factory reset.
-- Mac media controls through simulated media keys.
+- Speaker controls: mute/unmute, speaker volume, bass, input source, pairing, factory reset.
+- Mac media controls through simulated media keys. These are normal computer media controls, not Z407 speaker-volume controls.
 - Modern responsive web UI for desktop and mobile browsers.
 
 ## Recommended macOS Setup: AUX Audio + BLE Control
@@ -22,7 +22,9 @@ This app runs a local web server on your Mac and controls the Logitech Z407 over
 3. Run this app on your Mac.
 4. Use the web UI to control speaker volume, bass, input source, and Mac playback.
 
-The audio stays wired through AUX. BLE is only used as the remote-control channel.
+The audio stays wired through AUX. BLE is only used as the remote-control channel. Based on local testing, AUX usually sounds better than Bluetooth, and Bluetooth may distort at higher volume. USB audio has not been tested yet.
+
+The web UI can still switch the Z407 between `AUX`, `USB`, and `Bluetooth`; AUX is only the recommended wired Mac setup.
 
 ## Quick Start on macOS
 
@@ -60,9 +62,9 @@ Open that URL from your phone while it is connected to the same Wi-Fi network.
 macOS may ask for:
 
 - **Bluetooth permission** for Terminal, Python, or the packaged app.
-- **Accessibility permission** for Mac media keys such as play/pause and volume.
+- **Accessibility permission** for Mac media keys such as play/pause and computer volume.
 
-If host media keys do not work, open System Settings and check Privacy & Security permissions.
+If Mac Media Controls do not work, open System Settings and check Privacy & Security permissions. You can also use your Mac keyboard, menu bar, or Control Center directly instead of the web UI for computer playback and volume.
 
 ## Advanced Configuration
 

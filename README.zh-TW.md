@@ -4,15 +4,15 @@
 
 [English README](README.md)
 
-這個 app 會在 Mac 上啟動本機網頁伺服器，並透過 Bluetooth Low Energy（BLE）控制 Logitech Z407。主要使用情境是：**Mac 音訊走 3.5mm AUX 音源線，控制指令走 BLE**。
+這個 app 會在 Mac 上啟動本機網頁伺服器，並透過 Bluetooth Low Energy（BLE）控制 Logitech Z407。它可以切換 Z407 的 `AUX`、`USB`、`Bluetooth` 三種輸入。常見 Mac 使用情境是：**Mac 音訊走 3.5mm AUX 音源線，控制指令走 BLE**。
 
 ## 功能
 
 - macOS-first 預設值：`127.0.0.1:8765`，避開 macOS AirPlay 常用的 `5000` port。
 - 預設只允許本機控制。
 - 可選 LAN 模式，讓同 Wi-Fi 的手機開網頁控制。
-- 音響控制：播放/暫停、音響音量、Bass、輸入來源、藍牙配對、恢復原廠設定。
-- Mac 媒體鍵控制：播放/暫停、上一首、下一首、Mac 音量、靜音。
+- 音響控制：靜音/取消靜音、音響本體音量、Bass、輸入來源、藍牙配對、恢復原廠設定。
+- Mac 媒體鍵控制：播放/暫停、上一首、下一首、Mac 電腦音量、靜音。這是一般電腦控制，不是 Z407 喇叭本體音量。
 - 現代化 responsive 網頁介面，支援桌面與手機瀏覽器。
 
 ## 建議 macOS 使用方式：AUX 音訊 + BLE 控制
@@ -22,7 +22,9 @@
 3. 在 Mac 上啟動這個 app。
 4. 用網頁介面控制音響音量、Bass、輸入來源與 Mac 播放。
 
-音訊會繼續走 AUX 線。BLE 只負責遙控指令。
+音訊會繼續走 AUX 線。BLE 只負責遙控指令。依目前本機實測，AUX 音質通常比 Bluetooth 好，Bluetooth 在音量較大時可能會爆音或破音；USB 音訊尚未實測。
+
+網頁仍然可以切換 Z407 的 `AUX`、`USB`、`Bluetooth` 三種輸入；AUX 只是 Mac 接音源線時的建議設定。
 
 ## macOS 快速開始
 
@@ -60,9 +62,9 @@ http://192.168.1.35:8765
 macOS 可能會要求：
 
 - **Bluetooth 權限**：給 Terminal、Python 或封裝後的 app。
-- **輔助使用 Accessibility 權限**：讓 app 可以模擬 Mac 媒體鍵。
+- **輔助使用 Accessibility 權限**：讓 app 可以模擬 Mac 媒體鍵，例如播放/暫停與電腦音量。
 
-如果 Mac 媒體鍵控制無效，請到系統設定的隱私權與安全性檢查權限。
+如果 Mac Media Controls 無效，請到系統設定的隱私權與安全性檢查權限。你也可以直接用 Mac 鍵盤、選單列或控制中心調整電腦播放與音量，不一定要透過網頁。
 
 ## 進階設定
 

@@ -82,10 +82,11 @@ def get_capabilities(
     if platform_key == "macos":
         permission_notes = [
             "macOS may ask for Bluetooth permission for Terminal, Python, or the packaged app.",
-            "Host media keys may require Accessibility permission in System Settings.",
-            "Use AUX on the Z407 when Mac audio is connected through a 3.5mm cable.",
+            "Mac Media Controls are normal computer media keys and may require Accessibility permission in System Settings.",
+            "Choose AUX, USB, or Bluetooth from the web UI to switch the Z407 input source.",
+            "Based on local testing, AUX usually sounds better than Bluetooth. Bluetooth may distort at higher volume. USB audio has not been tested.",
         ]
-        setup_hint = "AUX audio + BLE control"
+        setup_hint = "Choose the Z407 input below. AUX is recommended when your Mac is connected by cable."
         host_media_supported = True
     elif platform_key == "linux":
         permission_notes = [

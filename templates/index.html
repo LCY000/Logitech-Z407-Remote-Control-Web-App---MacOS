@@ -112,6 +112,7 @@
         .span-7 { grid-column: span 7; }
         .span-5 { grid-column: span 5; }
         .span-12 { grid-column: span 12; }
+        .speaker-card { border-color: rgba(242, 184, 75, 0.42); }
 
         .control-grid {
             display: grid;
@@ -148,13 +149,14 @@
         }
 
         .primary {
-            min-height: 132px;
+            min-height: 112px;
             background: var(--accent);
             color: var(--accent-ink);
             font-size: 1.3rem;
             font-weight: 800;
-            grid-column: span 3;
         }
+
+        .wide { grid-column: span 2; }
 
         .btn-label {
             display: block;
@@ -165,6 +167,37 @@
 
         .primary .btn-label {
             color: rgba(36, 22, 4, 0.72);
+        }
+
+        .control-stack {
+            display: grid;
+            gap: 14px;
+        }
+
+        .control-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .control-row button {
+            min-height: 72px;
+        }
+
+        .control-row .row-label {
+            grid-column: 1 / -1;
+            color: var(--muted);
+            font-size: 0.74rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+
+        .speaker-note {
+            border-top: 1px solid var(--line);
+            color: var(--muted);
+            line-height: 1.55;
+            margin-top: 18px;
+            padding-top: 16px;
         }
 
         .slider-card {
@@ -216,6 +249,10 @@
             line-height: 1.5;
         }
 
+        .quiet-card {
+            box-shadow: none;
+        }
+
         .unsupported-note {
             display: none;
             color: var(--warn);
@@ -237,6 +274,8 @@
             body { padding: 16px; }
             .hero, .grid { grid-template-columns: 1fr; }
             .span-7, .span-5, .span-12 { grid-column: span 1; }
+            .control-grid { grid-template-columns: 1fr; }
+            .wide { grid-column: span 1; }
             .advanced { grid-template-columns: repeat(2, 1fr); }
         }
     </style>
@@ -246,7 +285,7 @@
         <section class="hero">
             <div class="card">
                 <h1>Z407 Control</h1>
-                <p class="subtitle" id="setupHint">AUX audio + BLE control. Keep your Mac wired to the speaker and use this page as the remote.</p>
+                <p class="subtitle" id="setupHint">Choose the Z407 input below. AUX is recommended when your Mac is connected by cable.</p>
                 <div class="pill-row">
                     <span class="pill bad" id="connectionStatus">Disconnected</span>
                     <span class="pill" id="networkMode">Local</span>
@@ -263,17 +302,26 @@
         </section>
 
         <section class="grid">
-            <div class="card span-7">
+            <div class="card span-7 speaker-card">
                 <h2>Speaker Remote</h2>
-                <div class="control-grid">
-                    <button onclick="sendCommand('play_pause')" class="primary">Play / Pause<span class="btn-label">Z407 command</span></button>
-                    <button onclick="sendCommand('prev_speaker')">Previous<span class="btn-label">Speaker</span></button>
-                    <button onclick="sendCommand('next_speaker')">Next<span class="btn-label">Speaker</span></button>
-                    <button onclick="sendCommand('vol_down')">Volume -<span class="btn-label">Speaker</span></button>
-                    <button onclick="sendCommand('vol_up')">Volume +<span class="btn-label">Speaker</span></button>
-                    <button onclick="sendCommand('bass_down')">Bass -<span class="btn-label">Speaker</span></button>
-                    <button onclick="sendCommand('bass_up')">Bass +<span class="btn-label">Speaker</span></button>
+                <div class="control-stack">
+                    <div class="control-grid">
+                        <button onclick="sendCommand('play_pause')" class="primary wide">Mute / Unmute<span class="btn-label">Z407 speaker command</span></button>
+                        <button onclick="sendCommand('prev_speaker')">Previous<span class="btn-label">Speaker source</span></button>
+                        <button onclick="sendCommand('next_speaker')">Next<span class="btn-label">Speaker source</span></button>
+                    </div>
+                    <div class="control-row">
+                        <span class="row-label">Speaker volume</span>
+                        <button onclick="sendCommand('vol_down')">Volume -<span class="btn-label">Z407 speaker</span></button>
+                        <button onclick="sendCommand('vol_up')">Volume +<span class="btn-label">Z407 speaker</span></button>
+                    </div>
+                    <div class="control-row">
+                        <span class="row-label">Subwoofer bass</span>
+                        <button onclick="sendCommand('bass_down')">Bass -<span class="btn-label">Z407 subwoofer</span></button>
+                        <button onclick="sendCommand('bass_up')">Bass +<span class="btn-label">Z407 subwoofer</span></button>
+                    </div>
                 </div>
+                <p class="speaker-note">This section controls the Z407 speaker itself: speaker mute, speaker volume, and subwoofer bass. It is separate from your Mac system volume.</p>
             </div>
 
             <div class="card span-5">
@@ -283,11 +331,11 @@
                     <button id="inputUsb" onclick="sendCommand('input_usb')">USB</button>
                     <button id="inputBluetooth" onclick="sendCommand('input_bluetooth')">Bluetooth</button>
                 </div>
-                <p class="status-line">For your Mac setup, use AUX for audio and BLE for remote control.</p>
+                <p class="status-line">Use these buttons to choose which Z407 input is active. AUX is recommended for a Mac connected by cable, but the web app can switch all three inputs.</p>
             </div>
 
-            <div class="card span-7" id="hostMediaCard">
-                <h2 id="hostMediaTitle">Mac Media</h2>
+            <div class="card span-7 quiet-card" id="hostMediaCard">
+                <h2 id="hostMediaTitle">Mac Media Controls</h2>
                 <div class="control-grid">
                     <button data-host-media onclick="sendCommand('prev')">Previous<span class="btn-label">Mac</span></button>
                     <button data-host-media onclick="sendCommand('play_pause_pc')">Play / Pause<span class="btn-label">Mac</span></button>
@@ -296,6 +344,7 @@
                     <button data-host-media onclick="sendCommand('mute_pc')">Mute</button>
                     <button data-host-media onclick="sendCommand('vol_up_pc')">Mac Vol +</button>
                 </div>
+                <p class="status-line">These are normal computer media controls. You can also use your keyboard, menu bar, or macOS Control Center instead. macOS may ask for Accessibility permission when these buttons are used.</p>
                 <p class="status-line unsupported-note" id="hostMediaUnsupported">Host media keys are not supported on this platform.</p>
             </div>
 
@@ -312,6 +361,8 @@
             <div class="card span-12">
                 <h2>Setup Notes</h2>
                 <ul class="help-list" id="helpList">
+                    <li>AUX usually sounds better than Bluetooth based on local testing.</li>
+                    <li>Bluetooth may distort at higher volume. USB audio has not been tested yet.</li>
                     <li>Loading platform notes...</li>
                 </ul>
             </div>
@@ -431,7 +482,7 @@
             try {
                 const data = await requestJson('/api/capabilities');
                 setupHint.innerText = data.setupHint || setupHint.innerText;
-                hostMediaTitle.innerText = data.platform === 'macos' ? 'Mac Media' : 'Host Media';
+                hostMediaTitle.innerText = data.platform === 'macos' ? 'Mac Media Controls' : 'Host Media Controls';
                 setHostMediaSupport(data.hostMediaKeysSupported !== false);
                 helpList.innerHTML = '';
                 (data.permissionNotes || []).forEach(note => {

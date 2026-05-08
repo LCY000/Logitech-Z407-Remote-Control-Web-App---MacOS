@@ -15,8 +15,9 @@ def test_macos_capabilities_are_aux_first():
     assert capabilities["platform"] == "macos"
     assert capabilities["preferredInput"] == "aux"
     assert capabilities["networkMode"] == "local"
-    assert "AUX audio + BLE control" in capabilities["setupHint"]
+    assert "Choose the Z407 input below" in capabilities["setupHint"]
     assert "Accessibility" in " ".join(capabilities["permissionNotes"])
+    assert any("USB audio has not been tested" in note for note in capabilities["permissionNotes"])
 
 
 def test_linux_capabilities_keep_xdotool_hint():
