@@ -246,7 +246,7 @@ def test_ui_labels_distinguish_speaker_and_mac_controls():
     assert "Use Quit App or Ctrl+C to exit safely" in html
     assert "Avoid Ctrl+Z" in html
     assert "const staticHelpNotes = [" in html
-    assert "renderHelpNotes(data.permissionNotes || [])" in html
+    assert "new Set([...staticHelpNotes, ...notes])" in html
     assert "hero-actions" not in html
     assert "quit-button" not in html
 

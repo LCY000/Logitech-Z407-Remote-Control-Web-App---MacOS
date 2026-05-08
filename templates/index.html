@@ -461,7 +461,8 @@
 
         function renderHelpNotes(notes) {
             helpList.innerHTML = '';
-            [...staticHelpNotes, ...notes].forEach(note => {
+            const uniqueNotes = [...new Set([...staticHelpNotes, ...notes])];
+            uniqueNotes.forEach(note => {
                 const item = document.createElement('li');
                 item.innerText = note;
                 helpList.appendChild(item);
