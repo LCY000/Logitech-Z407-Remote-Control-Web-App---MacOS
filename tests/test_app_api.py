@@ -243,6 +243,16 @@ def test_ui_labels_distinguish_speaker_and_mac_controls():
     assert "AUX usually sounds better than Bluetooth" in html
     assert "Session Volume Estimate" in html
     assert "Only tracks changes made from this page" in html
+    assert "Quit App" in html
+    assert "Use Quit App or Ctrl+C to exit safely" in html
+    assert "Avoid Ctrl+Z" in html
+
+
+def test_startup_banner_mentions_safe_exit():
+    source = Path("app.py").read_text()
+
+    assert "Quit safely: use the Quit App button or press Ctrl+C." in source
+    assert "Do not use Ctrl+Z; it suspends the app instead of closing it." in source
 
 
 def test_terminal_logging_is_quiet_by_default():

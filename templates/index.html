@@ -103,6 +103,13 @@
         .pill.bad { color: var(--bad); }
         .pill.warn { color: var(--warn); }
 
+        .hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 18px;
+        }
+
         .grid {
             display: grid;
             grid-template-columns: repeat(12, 1fr);
@@ -242,6 +249,17 @@
             background: rgba(255, 77, 77, 0.16);
         }
 
+        .quit-button {
+            background: linear-gradient(135deg, #ff6b4a, #ffb347);
+            color: #260c04;
+            font-weight: 800;
+            min-width: 148px;
+        }
+
+        .quit-button .btn-label {
+            color: rgba(38, 12, 4, 0.72);
+        }
+
         .status-line {
             min-height: 24px;
             color: var(--muted);
@@ -290,6 +308,9 @@
                     <span class="pill bad" id="connectionStatus">Disconnected</span>
                     <span class="pill" id="networkMode">Local</span>
                     <span class="pill warn" id="preferredInput">AUX recommended</span>
+                </div>
+                <div class="hero-actions">
+                    <button class="quit-button" onclick="shutdownApp()">Quit App<span class="btn-label">Safely close server + BLE</span></button>
                 </div>
                 <p class="status-line" id="statusText" role="status" aria-live="polite">Starting speaker scan...</p>
             </div>
@@ -355,7 +376,7 @@
                     <button onclick="confirmAction('bluetooth_pair', 'Activate Bluetooth pairing mode?')">Pair</button>
                     <button class="danger" onclick="confirmAction('factory_reset', 'Factory reset the Z407? This can erase paired devices.')">Reset</button>
                     <button onclick="window.location.reload()">Refresh</button>
-                    <button class="danger" onclick="shutdownApp()">Quit</button>
+                    <button class="quit-button" onclick="shutdownApp()">Quit App</button>
                 </div>
             </div>
 
@@ -364,6 +385,7 @@
                 <ul class="help-list" id="helpList">
                     <li>AUX usually sounds better than Bluetooth based on local testing.</li>
                     <li>Bluetooth may distort at higher volume. USB audio has not been tested yet.</li>
+                    <li>Use Quit App or Ctrl+C to exit safely. Avoid Ctrl+Z because it only suspends the app and can leave Bluetooth state stale.</li>
                     <li>Loading platform notes...</li>
                 </ul>
             </div>

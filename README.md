@@ -41,6 +41,12 @@ http://127.0.0.1:8765
 
 The script creates a Python virtual environment, installs dependencies, starts the server, and opens your browser.
 
+## Quit Safely
+
+Use the web UI's **Quit App** button or press `Ctrl+C` in the terminal.
+
+Do not use `Ctrl+Z`. It suspends the process instead of closing it, which can leave the local server or Bluetooth state stale. If you accidentally press `Ctrl+Z`, run `jobs` and then `kill %1` for the suspended job.
+
 ## Phone Control on the Same Wi-Fi
 
 Run:

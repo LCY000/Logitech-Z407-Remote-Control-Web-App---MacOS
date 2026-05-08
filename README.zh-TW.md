@@ -41,6 +41,12 @@ http://127.0.0.1:8765
 
 這個腳本會建立 Python virtual environment、安裝依賴、啟動 server，並開啟瀏覽器。
 
+## 正確退出
+
+請使用網頁上的 **Quit App** 按鈕，或在終端機按 `Ctrl+C`。
+
+不要用 `Ctrl+Z`。`Ctrl+Z` 只是暫停程式，不是關閉程式，可能讓本機 server 或 Bluetooth 狀態殘留。如果不小心按到 `Ctrl+Z`，可以先執行 `jobs`，再用 `kill %1` 關掉被暫停的 job。
+
 ## 用手機在同 Wi-Fi 控制
 
 執行：

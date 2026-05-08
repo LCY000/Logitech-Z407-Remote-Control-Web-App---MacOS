@@ -407,6 +407,8 @@ if __name__ == "__main__":
         else:
             print("   LAN:   disabled. Use --lan to control from a phone on the same Wi-Fi.")
         print(f"   Input: {runtime_config.preferred_input.upper()} recommended")
+        print("\n   Quit safely: use the Quit App button or press Ctrl+C.")
+        print("   Do not use Ctrl+Z; it suspends the app instead of closing it.")
         print("#"*60 + "\n")
 
         app.run(host=runtime_config.host, port=runtime_config.port, use_reloader=False)
