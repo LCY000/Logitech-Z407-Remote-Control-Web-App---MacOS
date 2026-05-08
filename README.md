@@ -47,7 +47,7 @@ Run:
 ./run_macos.sh --lan
 ```
 
-The terminal will print a LAN URL such as:
+`run_macos.sh` starts LAN mode, and the Python app prints a LAN URL such as:
 
 ```text
 http://192.168.1.35:8765
@@ -67,10 +67,10 @@ If host media keys do not work, open System Settings and check Privacy & Securit
 ## Advanced Configuration
 
 ```bash
-python app.py --port 9090
-python app.py --lan
-python app.py --ip 192.168.1.50 --port 9090
-python app.py --preferred-input aux
+./run_macos.sh --port 9090
+./run_macos.sh --lan
+./run_macos.sh --lan --port 9090
+./run_macos.sh --preferred-input aux
 ```
 
 Defaults:
@@ -132,6 +132,8 @@ This is an **unofficial** project and is not affiliated with, endorsed by, or co
 ## Donations & Support
 
 This project is based on free community work. Please keep supporting and crediting the original author and reverse engineering work.
+
+This project is 100% free. Donations and support help the original author dedicate time and resources to this project and other community work.
 
 Original author support page:
 https://androrama.com

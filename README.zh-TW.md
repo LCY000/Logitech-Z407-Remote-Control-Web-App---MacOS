@@ -47,7 +47,7 @@ http://127.0.0.1:8765
 ./run_macos.sh --lan
 ```
 
-終端機會顯示類似這樣的 LAN URL：
+`run_macos.sh` 會啟動 LAN 模式，Python app 會顯示類似這樣的 LAN URL：
 
 ```text
 http://192.168.1.35:8765
@@ -67,10 +67,10 @@ macOS 可能會要求：
 ## 進階設定
 
 ```bash
-python app.py --port 9090
-python app.py --lan
-python app.py --ip 192.168.1.50 --port 9090
-python app.py --preferred-input aux
+./run_macos.sh --port 9090
+./run_macos.sh --lan
+./run_macos.sh --lan --port 9090
+./run_macos.sh --preferred-input aux
 ```
 
 預設值：
@@ -132,6 +132,8 @@ https://github.com/freundTech/logi-z407-reverse-engineering
 ## Donations & Support
 
 這個專案建立在免費的社群工作上。請保留並尊重原作者與 reverse engineering 的貢獻。
+
+This project is 100% free。本專案完全免費。捐款與支持可以幫助原作者投入更多時間與資源，繼續維護這個專案與其他社群作品。
 
 原作者支持頁面：
 https://androrama.com
