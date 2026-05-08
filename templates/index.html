@@ -384,6 +384,11 @@
         const volBar = document.getElementById('volBar');
         const volText = document.getElementById('volText');
         const helpList = document.getElementById('helpList');
+        const staticHelpNotes = [
+            'AUX usually sounds better than Bluetooth based on local testing.',
+            'Bluetooth may distort at higher volume. USB audio has not been tested yet.',
+            'Use Quit App or Ctrl+C to exit safely. Avoid Ctrl+Z because it only suspends the app and can leave Bluetooth state stale.'
+        ];
 
         async function requestJson(url, options = {}) {
             let response;
@@ -454,6 +459,15 @@
             hostMediaUnsupported.classList.toggle('visible', !isSupported);
         }
 
+        function renderHelpNotes(notes) {
+            helpList.innerHTML = '';
+            [...staticHelpNotes, ...notes].forEach(note => {
+                const item = document.createElement('li');
+                item.innerText = note;
+                helpList.appendChild(item);
+            });
+        }
+
         async function updateStatus() {
             try {
                 const data = await requestJson('/api/status');
@@ -486,18 +500,10 @@
                 setupHint.innerText = data.setupHint || setupHint.innerText;
                 hostMediaTitle.innerText = data.platform === 'macos' ? 'Mac Media Controls' : 'Host Media Controls';
                 setHostMediaSupport(data.hostMediaKeysSupported !== false);
-                helpList.innerHTML = '';
-                (data.permissionNotes || []).forEach(note => {
-                    const item = document.createElement('li');
-                    item.innerText = note;
-                    helpList.appendChild(item);
-                });
+                renderHelpNotes(data.permissionNotes || []);
                 markPreferredInput(data.preferredInput || 'aux');
             } catch (error) {
-                helpList.innerHTML = '';
-                const item = document.createElement('li');
-                item.innerText = `Could not load platform notes: ${error.message}`;
-                helpList.appendChild(item);
+                renderHelpNotes([`Could not load platform notes: ${error.message}`]);
             }
         }
 
