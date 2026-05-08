@@ -261,3 +261,10 @@ def test_startup_banner_mentions_safe_exit():
 def test_terminal_logging_is_quiet_by_default():
     assert z407_app.runtime_config.quiet_logs is True
     assert "hypercorn.access" in z407_app.QUIET_LOGGER_NAMES
+
+
+def test_app_source_mentions_sigterm_and_packaged_quit_support():
+    source = Path("app.py").read_text()
+
+    assert "signal.SIGTERM" in source
+    assert "raise KeyboardInterrupt" in source

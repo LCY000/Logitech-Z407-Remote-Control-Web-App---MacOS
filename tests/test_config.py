@@ -93,3 +93,11 @@ def test_get_lan_ip_returns_loopback_fallback_when_socket_creation_fails(monkeyp
 def test_invalid_preferred_input_rejects():
     with pytest.raises(SystemExit):
         build_runtime_config(["--preferred-input", "line-in"])
+
+
+def test_packaging_scripts_exist():
+    from pathlib import Path
+
+    assert Path("Launch Logitech Z407 Web Control.command").exists()
+    assert Path("build_macos_app.sh").exists()
+    assert Path("Logitech_Z407_MacOS.spec").exists()

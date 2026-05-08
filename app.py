@@ -86,6 +86,10 @@ def configure_terminal_logging(config: RuntimeConfig) -> None:
         logger.propagate = False
 
 
+def handle_process_termination(_signum, _frame):
+    raise KeyboardInterrupt
+
+
 def is_z407_device(device) -> bool:
     name = (getattr(device, "name", "") or "").casefold()
     if any(marker in name for marker in Z407_NAME_MARKERS):
@@ -393,6 +397,7 @@ async def handle_command(command):
 if __name__ == "__main__":
     runtime_config = build_runtime_config()
     configure_terminal_logging(runtime_config)
+    signal.signal(signal.SIGTERM, handle_process_termination)
     lan_ip = get_lan_ip()
 
     try:

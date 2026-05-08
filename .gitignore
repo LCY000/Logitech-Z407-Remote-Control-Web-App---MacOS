@@ -1,7 +1,12 @@
 venv/
 __pycache__/
 *.pyc
+.pytest_cache/
+.pyinstaller/
+.DS_Store
 dist/
 build/
+release/
 *.spec
+!Logitech_Z407_MacOS.spec
 .worktrees/

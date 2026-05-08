@@ -4,9 +4,9 @@
 
 [English README](README.md)
 
-這個 repository 預期會以 `Logitech-Z407-Remote-Control-Web-App---MacOS` 名稱發布。
-
 這個 app 會在 Mac 上啟動本機網頁伺服器，並透過 Bluetooth Low Energy（BLE）控制 Logitech Z407。它針對常見的 Mac 使用情境優化：音訊走 3.5mm AUX 音源線，BLE 只負責遙控指令。
+
+如果你覺得原本的無線控制撥盤不太好用、在桌上佔空間，或是乾脆已經弄丟了，這個 app 就很適合。以我自己的使用情境來說，平常喇叭都用 AUX 接著 Mac，實體控制撥盤大多收起來，一般音量也直接在 Mac 上調整。真正麻煩的是偶爾想調 Bass 或切換輸入來源時，沒有把撥盤放在手邊就很不方便。這個 app 要解決的，就是這種「平常不需要撥盤，但偶爾又需要那些控制」的情況。
 
 ## 功能
 
@@ -48,6 +48,27 @@ http://127.0.0.1:8765
 ```
 
 `run_macos.sh` 會在需要時建立本機 virtual environment、安裝執行所需套件、啟動 server，並開啟瀏覽器。
+
+## 給其他 Mac 使用者使用
+
+如果是分享原始碼版本，最簡單的方式是讓對方直接啟動：
+
+- `Launch Logitech Z407 Web Control.command`
+- `./run_macos.sh`
+
+如果要分享成更像一般 Mac app 的形式，可以先打包：
+
+```bash
+./build_macos_app.sh
+```
+
+打包後的 app 會出現在：
+
+```text
+release/Logitech Z407 Remote Control.app
+```
+
+關閉這個 app 時，內建的本機 server 也應該會一起停止。
 
 ## 安全退出
 

@@ -4,9 +4,9 @@
 
 [繁體中文 README](README.zh-TW.md)
 
-This repository is intended to be published as `Logitech-Z407-Remote-Control-Web-App---MacOS`.
-
 The app runs a local web server on your Mac and controls the Logitech Z407 over Bluetooth Low Energy (BLE). It is optimized for a common setup where audio stays on a 3.5mm AUX cable and BLE is only used for remote-control commands.
+
+This app is useful when the original wireless control dial is inconvenient, takes up desk space, or has simply gone missing. My own setup is straightforward: the speaker stays connected to the Mac over AUX, the physical dial is usually put away, and day-to-day volume changes happen directly on the Mac. The annoyance only shows up when I occasionally want to adjust bass or switch inputs. This app is designed for exactly that situation: it gives you quick access to the controls that are awkward to reach once the dial is no longer on the desk.
 
 ## Features
 
@@ -48,6 +48,27 @@ http://127.0.0.1:8765
 ```
 
 `run_macos.sh` creates a local virtual environment if needed, installs runtime dependencies, starts the server, and opens your browser.
+
+## Sharing With Other Mac Users
+
+For source-based use, share this repository and have people launch either:
+
+- `Launch Logitech Z407 Web Control.command`
+- `./run_macos.sh`
+
+For a more user-friendly standalone app, build:
+
+```bash
+./build_macos_app.sh
+```
+
+The packaged app will be created at:
+
+```text
+release/Logitech Z407 Remote Control.app
+```
+
+Quitting the app should stop the bundled local server as well.
 
 ## Safer Exit
 
