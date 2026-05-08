@@ -28,6 +28,12 @@ source venv/bin/activate
 
 pip install -r requirements.txt
 
+if [ "${1:-}" = "--debug-scan" ]; then
+  shift
+  python debug_ble_scan.py "$@"
+  exit $?
+fi
+
 PORT="${Z407_PORT:-8765}"
 LAN_MODE="false"
 PREV_WAS_PORT="false"

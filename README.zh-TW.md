@@ -74,6 +74,7 @@ macOS 可能會要求：
 ./run_macos.sh --lan --port 9090
 ./run_macos.sh --preferred-input aux
 ./run_macos.sh --verbose
+./run_macos.sh --debug-scan --duration 8
 ```
 
 預設值：
@@ -82,6 +83,8 @@ macOS 可能會要求：
 - Port：`8765`
 - 建議輸入來源：`aux`
 - 終端機 log：預設安靜模式。需要 HTTP access log 和重複掃描訊息時可加 `--verbose`。
+
+如果 app 找不到 Z407，可以用 `--debug-scan` 列出 macOS 目前掃得到的 BLE 裝置，並標記可能的 Z407 裝置。
 
 ## Linux 說明
 

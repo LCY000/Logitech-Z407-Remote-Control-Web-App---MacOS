@@ -74,6 +74,7 @@ If Mac Media Controls do not work, open System Settings and check Privacy & Secu
 ./run_macos.sh --lan --port 9090
 ./run_macos.sh --preferred-input aux
 ./run_macos.sh --verbose
+./run_macos.sh --debug-scan --duration 8
 ```
 
 Defaults:
@@ -82,6 +83,8 @@ Defaults:
 - Port: `8765`
 - Preferred input: `aux`
 - Terminal logs: quiet by default. Use `--verbose` to show HTTP access logs and repeated scan messages.
+
+Use `--debug-scan` when the app cannot find the Z407. It prints the BLE devices visible to macOS and marks possible Z407 candidates.
 
 ## Linux Notes
 
