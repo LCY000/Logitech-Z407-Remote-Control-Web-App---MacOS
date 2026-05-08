@@ -30,6 +30,7 @@ print(f"--- Running in {CURRENT_PLATFORM.key.upper()} mode ---")
 SERVICE_UUID = "0000fdc2-0000-1000-8000-00805f9b34fb"
 COMMAND_UUID = "c2e758b9-0e78-41e0-b0cb-98a593193fc5"
 RESPONSE_UUID = "b84ac9c6-29c5-46d4-bba1-9d534784330f"
+Z407_NAME_MARKERS = ("z407", "zs283")
 
 
 if getattr(sys, 'frozen', False):
@@ -82,6 +83,16 @@ def configure_terminal_logging(config: RuntimeConfig) -> None:
         logger = logging.getLogger(logger_name)
         logger.disabled = True
         logger.propagate = False
+
+
+def is_z407_device(device) -> bool:
+    name = (getattr(device, "name", "") or "").casefold()
+    if any(marker in name for marker in Z407_NAME_MARKERS):
+        return True
+
+    metadata = getattr(device, "metadata", {}) or {}
+    service_uuids = metadata.get("uuids", []) or metadata.get("service_uuids", [])
+    return any(str(uuid).casefold() == SERVICE_UUID for uuid in service_uuids)
 
 class Z407Remote:
     def __init__(self, device):
@@ -222,6 +233,13 @@ async def find_device():
             if devices:
                 last_error = None
                 return devices[0]
+
+            devices = await BleakScanner.discover()
+            for device in devices:
+                if is_z407_device(device):
+                    last_error = None
+                    return device
+
             connection_state = "not_found"
             last_error = "Speakers not found"
         except Exception as e:
@@ -236,6 +254,8 @@ async def find_device():
 async def manage_connection():
     global remote_control, connection_state
     fail_count = 0
+    printed_connection_failure = False
+    printed_not_found = False
     
     print("Starting background connection manager...")
     
@@ -249,8 +269,9 @@ async def manage_connection():
                 print("Connection successful!")
                 break
             fail_count += 1
-            if fail_count == 1 or not runtime_config.quiet_logs:
+            if not printed_connection_failure or not runtime_config.quiet_logs:
                 print("Z407 was found but connection failed. The web UI is still available; retrying in the background.")
+                printed_connection_failure = True
             if fail_count >= 5:
                 if not runtime_config.quiet_logs:
                     print("Still trying to connect. Check speaker power, input mode, Bluetooth permissions, and proximity.")
@@ -258,8 +279,9 @@ async def manage_connection():
             await asyncio.sleep(3)
         else:
             fail_count += 1
-            if fail_count == 1 or not runtime_config.quiet_logs:
+            if not printed_not_found or not runtime_config.quiet_logs:
                 print("Z407 not found yet. The web UI is still available; use Refresh or wait for auto-retry.")
+                printed_not_found = True
             if fail_count >= 5:
                 if not runtime_config.quiet_logs:
                     print("Still searching. Check speaker power, input mode, Bluetooth permissions, and proximity.")

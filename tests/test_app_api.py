@@ -84,6 +84,31 @@ async def test_unknown_command_returns_400_without_scanning(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_find_device_falls_back_to_unfiltered_name_scan(monkeypatch):
+    calls = []
+
+    class Device:
+        name = "ZS283A_develop_ot"
+        address = "test-address"
+        metadata = {}
+
+    async def fake_discover(**kwargs):
+        calls.append(kwargs)
+        if kwargs.get("service_uuids"):
+            return []
+        return [Device()]
+
+    monkeypatch.setattr(z407_app.BleakScanner, "discover", fake_discover)
+
+    device = await z407_app.find_device()
+
+    assert device.name == "ZS283A_develop_ot"
+    assert calls == [{"service_uuids": [z407_app.SERVICE_UUID]}, {}]
+    assert z407_app.connection_state == "scanning"
+    assert z407_app.last_error is None
+
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize("command", ["play_pause_pc", "vol_up_pc"])
 async def test_host_media_commands_do_not_require_ble_discovery(monkeypatch, command):
     calls = []
@@ -143,6 +168,33 @@ async def test_manage_connection_sleeps_after_failed_connect(monkeypatch):
         await z407_app.manage_connection()
 
     assert sleeps == [3]
+
+
+@pytest.mark.asyncio
+async def test_manage_connection_quiet_mode_prints_not_found_once(monkeypatch, capsys):
+    attempts = 0
+    sleeps = []
+
+    async def fake_find_device():
+        nonlocal attempts
+        attempts += 1
+        if attempts > 6:
+            raise asyncio.CancelledError()
+        return None
+
+    async def fake_sleep(seconds):
+        sleeps.append(seconds)
+
+    monkeypatch.setattr(z407_app, "find_device", fake_find_device)
+    monkeypatch.setattr(z407_app.asyncio, "sleep", fake_sleep)
+
+    with pytest.raises(asyncio.CancelledError):
+        await z407_app.manage_connection()
+
+    output = capsys.readouterr().out
+    assert output.count("Z407 not found yet") == 1
+    assert "Still searching" not in output
+    assert sleeps == [3, 3, 3, 3, 3, 3]
 
 
 @pytest.mark.asyncio
