@@ -19,6 +19,7 @@ class RuntimeConfig:
     port: int
     lan_enabled: bool
     preferred_input: str
+    quiet_logs: bool = True
 
     @property
     def local_url(self) -> str:
@@ -33,6 +34,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--ip", type=str, default=None, help="Host IP to bind to")
     parser.add_argument("--port", type=int, default=DEFAULT_PORT, help=f"Port to bind to (default: {DEFAULT_PORT})")
     parser.add_argument("--lan", action="store_true", help="Expose the web app to other devices on the local network")
+    parser.add_argument("--verbose", action="store_true", help="Show HTTP access logs and repeated background scan messages")
     parser.add_argument(
         "--preferred-input",
         choices=("aux", "usb", "bluetooth"),
@@ -57,6 +59,7 @@ def build_runtime_config(argv: list[str] | None = None) -> RuntimeConfig:
         port=args.port,
         lan_enabled=lan_enabled,
         preferred_input=args.preferred_input,
+        quiet_logs=not args.verbose,
     )
 
 

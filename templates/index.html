@@ -294,10 +294,10 @@
                 <p class="status-line" id="statusText" role="status" aria-live="polite">Starting speaker scan...</p>
             </div>
             <div class="card slider-card">
-                <h2>Estimated Speaker Volume</h2>
+                <h2>Session Volume Estimate</h2>
                 <div class="meter"><div class="meter-fill" id="volBar"></div></div>
                 <p><strong id="volText">50%</strong></p>
-                <p class="status-line">This is estimated because the Z407 remote protocol reports limited volume state.</p>
+                <p class="status-line">Only tracks changes made from this page. The Z407 does not report exact speaker volume or bass level to this app.</p>
             </div>
         </section>
 
@@ -305,10 +305,11 @@
             <div class="card span-7 speaker-card">
                 <h2>Speaker Remote</h2>
                 <div class="control-stack">
-                    <div class="control-grid">
-                        <button onclick="sendCommand('play_pause')" class="primary wide">Mute / Unmute<span class="btn-label">Z407 speaker command</span></button>
-                        <button onclick="sendCommand('prev_speaker')">Previous<span class="btn-label">Speaker source</span></button>
-                        <button onclick="sendCommand('next_speaker')">Next<span class="btn-label">Speaker source</span></button>
+                    <button onclick="sendCommand('play_pause')" class="primary">Mute / Unmute<span class="btn-label">Z407 speaker command</span></button>
+                    <div class="control-row speaker-skip-row">
+                        <span class="row-label">Track controls</span>
+                        <button onclick="sendCommand('prev_speaker')">Previous<span class="btn-label">Bluetooth / USB only</span></button>
+                        <button onclick="sendCommand('next_speaker')">Next<span class="btn-label">Bluetooth / USB only</span></button>
                     </div>
                     <div class="control-row">
                         <span class="row-label">Speaker volume</span>

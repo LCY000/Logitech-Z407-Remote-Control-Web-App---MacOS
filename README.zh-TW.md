@@ -73,6 +73,7 @@ macOS 可能會要求：
 ./run_macos.sh --lan
 ./run_macos.sh --lan --port 9090
 ./run_macos.sh --preferred-input aux
+./run_macos.sh --verbose
 ```
 
 預設值：
@@ -80,6 +81,7 @@ macOS 可能會要求：
 - Host：`127.0.0.1`
 - Port：`8765`
 - 建議輸入來源：`aux`
+- 終端機 log：預設安靜模式。需要 HTTP access log 和重複掃描訊息時可加 `--verbose`。
 
 ## Linux 說明
 

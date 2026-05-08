@@ -179,8 +179,17 @@ def test_ui_labels_distinguish_speaker_and_mac_controls():
     html = Path("templates/index.html").read_text()
 
     assert "Mute / Unmute" in html
+    assert "speaker-skip-row" in html
+    assert html.index("speaker-skip-row") < html.index("Speaker volume")
     assert "Speaker volume" in html
     assert "Subwoofer bass" in html
     assert "Mac Media Controls" in html
     assert "These are normal computer media controls" in html
     assert "AUX usually sounds better than Bluetooth" in html
+    assert "Session Volume Estimate" in html
+    assert "Only tracks changes made from this page" in html
+
+
+def test_terminal_logging_is_quiet_by_default():
+    assert z407_app.runtime_config.quiet_logs is True
+    assert "hypercorn.access" in z407_app.QUIET_LOGGER_NAMES

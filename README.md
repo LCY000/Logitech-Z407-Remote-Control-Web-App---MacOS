@@ -73,6 +73,7 @@ If Mac Media Controls do not work, open System Settings and check Privacy & Secu
 ./run_macos.sh --lan
 ./run_macos.sh --lan --port 9090
 ./run_macos.sh --preferred-input aux
+./run_macos.sh --verbose
 ```
 
 Defaults:
@@ -80,6 +81,7 @@ Defaults:
 - Host: `127.0.0.1`
 - Port: `8765`
 - Preferred input: `aux`
+- Terminal logs: quiet by default. Use `--verbose` to show HTTP access logs and repeated scan messages.
 
 ## Linux Notes
 

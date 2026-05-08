@@ -10,6 +10,7 @@ def test_default_runtime_config_is_macos_safe_local_mode():
     assert config.port == 8765
     assert config.lan_enabled is False
     assert config.preferred_input == "aux"
+    assert config.quiet_logs is True
 
 
 def test_lan_mode_binds_all_interfaces():

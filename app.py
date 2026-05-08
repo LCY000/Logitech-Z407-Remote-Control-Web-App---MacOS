@@ -2,6 +2,7 @@ import sys
 import os
 import signal
 import asyncio
+import logging
 # Based on Z407 Reverse Engineering by freundTech: https://github.com/freundTech/logi-z407-reverse-engineering
 
 """
@@ -44,6 +45,7 @@ scan_lock = None
 runtime_config = RuntimeConfig(host="127.0.0.1", port=8765, lan_enabled=False, preferred_input="aux")
 connection_state = "starting"
 last_error = None
+QUIET_LOGGER_NAMES = ("hypercorn.access", "quart.serving")
 
 HOST_MEDIA_COMMANDS = {
     "next",
@@ -70,6 +72,16 @@ BLE_SPEAKER_COMMANDS = {
 }
 
 SUPPORTED_COMMANDS = HOST_MEDIA_COMMANDS | BLE_SPEAKER_COMMANDS
+
+
+def configure_terminal_logging(config: RuntimeConfig) -> None:
+    if not config.quiet_logs:
+        return
+
+    for logger_name in QUIET_LOGGER_NAMES:
+        logger = logging.getLogger(logger_name)
+        logger.disabled = True
+        logger.propagate = False
 
 class Z407Remote:
     def __init__(self, device):
@@ -182,6 +194,9 @@ class Z407Remote:
     async def prev_track_speaker(self): await self._send_command("8006")
 
 async def print_ip_reminder():
+    if runtime_config.quiet_logs:
+        return
+
     while True:
         await asyncio.sleep(30)
         lan_ip = get_lan_ip()
@@ -198,7 +213,8 @@ async def find_device():
         
     async with scan_lock:
         connection_state = "scanning"
-        print("Scanning for Z407...")
+        if not runtime_config.quiet_logs:
+            print("Scanning for Z407...")
         scanner_kwargs = {"service_uuids": [SERVICE_UUID]}
 
         try:
@@ -233,16 +249,20 @@ async def manage_connection():
                 print("Connection successful!")
                 break
             fail_count += 1
-            print(f"Connection failed. Attempt {fail_count}/5...")
+            if fail_count == 1 or not runtime_config.quiet_logs:
+                print("Z407 was found but connection failed. The web UI is still available; retrying in the background.")
             if fail_count >= 5:
-                print("Still trying to connect. Check speaker power, input mode, Bluetooth permissions, and proximity.")
+                if not runtime_config.quiet_logs:
+                    print("Still trying to connect. Check speaker power, input mode, Bluetooth permissions, and proximity.")
                 fail_count = 0
             await asyncio.sleep(3)
         else:
             fail_count += 1
-            print(f"Device not found. Attempt {fail_count}/5...")
+            if fail_count == 1 or not runtime_config.quiet_logs:
+                print("Z407 not found yet. The web UI is still available; use Refresh or wait for auto-retry.")
             if fail_count >= 5:
-                print("Still searching. Check speaker power, input mode, Bluetooth permissions, and proximity.")
+                if not runtime_config.quiet_logs:
+                    print("Still searching. Check speaker power, input mode, Bluetooth permissions, and proximity.")
                 fail_count = 0
             await asyncio.sleep(3)
 
@@ -351,6 +371,7 @@ async def handle_command(command):
 
 if __name__ == "__main__":
     runtime_config = build_runtime_config()
+    configure_terminal_logging(runtime_config)
     lan_ip = get_lan_ip()
 
     try:
