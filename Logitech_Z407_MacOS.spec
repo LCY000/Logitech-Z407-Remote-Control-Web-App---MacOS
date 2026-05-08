@@ -49,4 +49,10 @@ app = BUNDLE(
     name='Logitech Z407 Remote Control.app',
     icon=None,
     bundle_identifier='com.lcy000.logitech-z407-remote-control',
+    info_plist={
+        'CFBundleShortVersionString': '0.1.0',
+        'CFBundleVersion': '0.1.0',
+        'NSBluetoothAlwaysUsageDescription': 'This app uses Bluetooth to find and control your Logitech Z407 speaker.',
+        'NSBluetoothPeripheralUsageDescription': 'This app uses Bluetooth to find and control your Logitech Z407 speaker.',
+    },
 )

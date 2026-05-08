@@ -101,3 +101,13 @@ def test_packaging_scripts_exist():
     assert Path("Launch Logitech Z407 Web Control.command").exists()
     assert Path("build_macos_app.sh").exists()
     assert Path("Logitech_Z407_MacOS.spec").exists()
+
+
+def test_macos_app_declares_bluetooth_privacy_usage():
+    from pathlib import Path
+
+    spec = Path("Logitech_Z407_MacOS.spec").read_text()
+
+    assert "NSBluetoothAlwaysUsageDescription" in spec
+    assert "NSBluetoothPeripheralUsageDescription" in spec
+    assert "Logitech Z407 speaker" in spec
