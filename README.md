@@ -1,82 +1,91 @@
-# Logitech Z407 macOS Web Control
+# Logitech Z407 Remote Control Web App for macOS
 
-**A macOS-first web remote for Logitech Z407 speakers, adapted from the original Linux web app.**
+**A macOS-first web remote for Logitech Z407 speakers.**
 
 [繁體中文 README](README.zh-TW.md)
 
-This app runs a local web server on your Mac and controls the Logitech Z407 over Bluetooth Low Energy (BLE). It works with the Z407's AUX, USB, and Bluetooth inputs. For a common Mac setup, you can keep audio on a 3.5mm AUX cable while BLE is used only for remote-control commands.
+This repository is intended to be published as `Logitech-Z407-Remote-Control-Web-App---MacOS`.
+
+The app runs a local web server on your Mac and controls the Logitech Z407 over Bluetooth Low Energy (BLE). It is optimized for a common setup where audio stays on a 3.5mm AUX cable and BLE is only used for remote-control commands.
 
 ## Features
 
-- macOS-first defaults: `127.0.0.1:8765`, avoiding macOS AirPlay's common port `5000`.
-- Local-only mode by default.
-- Optional LAN mode for phone control on the same Wi-Fi.
-- Speaker controls: mute/unmute, speaker volume, bass, input source, pairing, factory reset.
-- Mac media controls through simulated media keys. These are normal computer media controls, not Z407 speaker-volume controls.
-- Modern responsive web UI for desktop and mobile browsers.
+- macOS-first defaults with `127.0.0.1:8765`, avoiding AirPlay's common port `5000`
+- Local-only mode by default, with optional LAN mode for phone control on the same Wi-Fi
+- Z407 speaker controls for mute, volume, bass, input switching, pairing, and factory reset
+- Mac media controls for play/pause, previous/next, volume, and mute
+- BLE debug scan mode for diagnosing discovery issues on macOS
+- Responsive browser UI for desktop and mobile
 
-## Recommended macOS Setup: AUX Audio + BLE Control
+## Recommended Setup
 
 1. Connect your Mac to the Z407 using a 3.5mm AUX cable.
-2. Select `AUX` as the Z407 input source.
-3. Run this app on your Mac.
-4. Use the web UI to control speaker volume, bass, input source, and Mac playback.
+2. Set the Z407 input to `AUX`.
+3. Run the app on your Mac.
+4. Use the browser UI to switch inputs or control the speaker.
 
-The audio stays wired through AUX. BLE is only used as the remote-control channel. Based on local testing, AUX usually sounds better than Bluetooth, and Bluetooth may distort at higher volume. USB audio has not been tested yet.
+Based on local testing, AUX usually sounds better than Bluetooth. Bluetooth may distort at higher volume. USB audio has not been tested yet.
 
-The web UI can still switch the Z407 between `AUX`, `USB`, and `Bluetooth`; AUX is only the recommended wired Mac setup.
+## Quick Start
 
-## Quick Start on macOS
+Run from Terminal:
 
 ```bash
 chmod +x run_macos.sh
 ./run_macos.sh
 ```
 
-Open:
+Or double-click:
+
+```text
+Launch Logitech Z407 Web Control.command
+```
+
+Then open:
 
 ```text
 http://127.0.0.1:8765
 ```
 
-The script creates a Python virtual environment, installs dependencies, starts the server, and opens your browser.
+`run_macos.sh` creates a local virtual environment if needed, installs runtime dependencies, starts the server, and opens your browser.
 
-## Quit Safely
+## Safer Exit
 
-Use the web UI's **Quit App** button or press `Ctrl+C` in the terminal.
+Use the web UI's `Quit` button or press `Ctrl+C` in the terminal.
 
-Do not use `Ctrl+Z`. It suspends the process instead of closing it, which can leave the local server or Bluetooth state stale. If you accidentally press `Ctrl+Z`, run `jobs` and then `kill %1` for the suspended job.
+Do not use `Ctrl+Z`. It suspends the process instead of closing it and can leave the local server or BLE state stale. If you accidentally suspend it, run `jobs` and then `kill %1`.
 
-## Phone Control on the Same Wi-Fi
+## Phone Control
 
-Run:
+To expose the app on your local network:
 
 ```bash
 ./run_macos.sh --lan
 ```
 
-`run_macos.sh` starts LAN mode, and the Python app prints a LAN URL such as:
+The app will print a LAN URL such as:
 
 ```text
 http://192.168.1.35:8765
 ```
 
-Open that URL from your phone while it is connected to the same Wi-Fi network.
+Open that address from a phone on the same Wi-Fi network.
 
 ## macOS Permissions
 
 macOS may ask for:
 
-- **Bluetooth permission** for Terminal, Python, or the packaged app.
-- **Accessibility permission** for Mac media keys such as play/pause and computer volume.
+- **Bluetooth permission** for Terminal, Python, or a packaged app
+- **Accessibility permission** when you use the Mac Media Controls buttons
 
-If Mac Media Controls do not work, open System Settings and check Privacy & Security permissions. You can also use your Mac keyboard, menu bar, or Control Center directly instead of the web UI for computer playback and volume.
+If Mac Media Controls do not work, check **System Settings > Privacy & Security**.
 
-## Advanced Configuration
+## Advanced Usage
+
+Examples:
 
 ```bash
 ./run_macos.sh --port 9090
-./run_macos.sh --lan
 ./run_macos.sh --lan --port 9090
 ./run_macos.sh --preferred-input aux
 ./run_macos.sh --verbose
@@ -88,39 +97,39 @@ Defaults:
 - Host: `127.0.0.1`
 - Port: `8765`
 - Preferred input: `aux`
-- Terminal logs: quiet by default. Use `--verbose` to show HTTP access logs and repeated scan messages.
+- Logs: quiet by default
 
-Use `--debug-scan` when the app cannot find the Z407. It prints the BLE devices visible to macOS and marks possible Z407 candidates.
+If discovery fails, use:
 
-## Linux Notes
+```bash
+./run_macos.sh --debug-scan --duration 10 --rounds 3 --pause 3
+```
 
-Linux source-run behavior is kept where practical. Host media keys on Linux require `xdotool`, and Bluetooth access may require BlueZ permissions or capabilities.
+That command lists BLE devices visible to macOS and highlights likely Z407 candidates.
 
-The original Linux installer scripts remain for reference, but this adaptation focuses on macOS usage.
+## Build From Source
 
-## Build from Source
-
-Prerequisites:
+Runtime requirements:
 
 - Python 3.12+
 - `pip`
 - `venv`
 
-Install and run:
+Run from source:
 
 ```bash
 python3 -m venv venv
 source venv/bin/activate
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 python app.py
 ```
 
-## Repository Name Recommendation
+Development tools:
 
-If you publish this adaptation as a separate GitHub repository, recommended names include:
-
-- `logitech-z407-macos-web-control`
-- `z407-macos-remote-web`
+```bash
+python -m pip install -r requirements-dev.txt
+pytest -q
+```
 
 ## Credits & Acknowledgments
 
@@ -135,7 +144,7 @@ Special thanks to **freundTech** for the reverse engineering work that made this
 https://github.com/freundTech/logi-z407-reverse-engineering
 
 **Upstream Project:**
-This version is adapted from `Androrama/Logitech-Z407-Remote-Control-Web-App---Linux`.
+This version was adapted from `Androrama/Logitech-Z407-Remote-Control-Web-App---Linux`.
 
 ## Disclaimer
 

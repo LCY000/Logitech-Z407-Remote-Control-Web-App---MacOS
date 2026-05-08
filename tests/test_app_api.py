@@ -254,7 +254,7 @@ def test_ui_labels_distinguish_speaker_and_mac_controls():
 def test_startup_banner_mentions_safe_exit():
     source = Path("app.py").read_text()
 
-    assert "Quit safely: use the Quit App button or press Ctrl+C." in source
+    assert "Quit safely: use the Quit button or press Ctrl+C." in source
     assert "Do not use Ctrl+Z; it suspends the app instead of closing it." in source
 
 

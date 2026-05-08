@@ -247,8 +247,6 @@ async def find_device():
             connection_state = "error"
             last_error = str(e)
             print(f"Error during scan: {e}")
-            if CURRENT_PLATFORM.key == "linux":
-                print("Hint: On Linux, you might need to run this script with 'sudo' or check your BlueZ permissions.")
                 
         return None
 
@@ -407,7 +405,7 @@ if __name__ == "__main__":
         else:
             print("   LAN:   disabled. Use --lan to control from a phone on the same Wi-Fi.")
         print(f"   Input: {runtime_config.preferred_input.upper()} recommended")
-        print("\n   Quit safely: use the Quit App button or press Ctrl+C.")
+        print("\n   Quit safely: use the Quit button or press Ctrl+C.")
         print("   Do not use Ctrl+Z; it suspends the app instead of closing it.")
         print("#"*60 + "\n")
 

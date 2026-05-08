@@ -20,13 +20,14 @@ def test_macos_capabilities_are_aux_first():
     assert any("Mac Media Controls use normal computer media keys" in note for note in capabilities["permissionNotes"])
 
 
-def test_linux_capabilities_keep_xdotool_hint():
-    info = PlatformInfo(system="linux")
+def test_non_macos_capabilities_do_not_claim_media_keys_supported():
+    info = PlatformInfo(system="freebsd")
     capabilities = get_capabilities(info, preferred_input="aux", lan_enabled=True)
 
-    assert capabilities["platform"] == "linux"
+    assert capabilities["platform"] == "unknown"
     assert capabilities["networkMode"] == "lan"
-    assert any("xdotool" in note for note in capabilities["permissionNotes"])
+    assert capabilities["hostMediaKeysSupported"] is False
+    assert capabilities["permissionNotes"] == ["This platform has not been tested on this macOS-first branch."]
 
 
 def test_unknown_capabilities_do_not_claim_media_keys_supported():
@@ -52,27 +53,9 @@ def test_media_key_names(command, expected):
     assert media_key_name(command) == expected
 
 
-def test_linux_send_host_media_key_uses_xdotool(monkeypatch):
-    calls = []
-
-    def fake_popen(args):
-        calls.append(args)
-
-    monkeypatch.setattr(z407_platform.subprocess, "Popen", fake_popen)
-
-    asyncio.run(send_host_media_key("next", PlatformInfo(system="linux")))
-
-    assert calls == [["xdotool", "key", "XF86AudioNext"]]
-
-
-def test_linux_send_host_media_key_missing_xdotool_has_install_hint(monkeypatch):
-    def fake_popen(args):
-        raise FileNotFoundError
-
-    monkeypatch.setattr(z407_platform.subprocess, "Popen", fake_popen)
-
-    with pytest.raises(RuntimeError, match="sudo apt install xdotool"):
-        asyncio.run(send_host_media_key("next", PlatformInfo(system="linux")))
+def test_non_macos_send_host_media_key_is_unsupported():
+    with pytest.raises(RuntimeError, match="only supported on macOS in this branch"):
+        asyncio.run(send_host_media_key("next", PlatformInfo(system="freebsd")))
 
 
 def test_macos_send_host_media_key_lazy_imports_pyautogui(monkeypatch):

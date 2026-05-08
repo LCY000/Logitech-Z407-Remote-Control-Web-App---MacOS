@@ -1,82 +1,91 @@
-# Logitech Z407 macOS 網頁控制器
+# Logitech Z407 Remote Control Web App for macOS
 
-**針對 macOS 優化的 Logitech Z407 網頁遙控器，改寫自原本的 Linux 網頁版專案。**
+**針對 macOS 優化的 Logitech Z407 網頁遙控器。**
 
 [English README](README.md)
 
-這個 app 會在 Mac 上啟動本機網頁伺服器，並透過 Bluetooth Low Energy（BLE）控制 Logitech Z407。它可以切換 Z407 的 `AUX`、`USB`、`Bluetooth` 三種輸入。常見 Mac 使用情境是：**Mac 音訊走 3.5mm AUX 音源線，控制指令走 BLE**。
+這個 repository 預期會以 `Logitech-Z407-Remote-Control-Web-App---MacOS` 名稱發布。
+
+這個 app 會在 Mac 上啟動本機網頁伺服器，並透過 Bluetooth Low Energy（BLE）控制 Logitech Z407。它針對常見的 Mac 使用情境優化：音訊走 3.5mm AUX 音源線，BLE 只負責遙控指令。
 
 ## 功能
 
-- macOS-first 預設值：`127.0.0.1:8765`，避開 macOS AirPlay 常用的 `5000` port。
-- 預設只允許本機控制。
-- 可選 LAN 模式，讓同 Wi-Fi 的手機開網頁控制。
-- 音響控制：靜音/取消靜音、音響本體音量、Bass、輸入來源、藍牙配對、恢復原廠設定。
-- Mac 媒體鍵控制：播放/暫停、上一首、下一首、Mac 電腦音量、靜音。這是一般電腦控制，不是 Z407 喇叭本體音量。
-- 現代化 responsive 網頁介面，支援桌面與手機瀏覽器。
+- macOS-first 預設值：`127.0.0.1:8765`，避開 AirPlay 常用的 `5000` port
+- 預設只允許本機控制，也可選 LAN 模式讓同 Wi-Fi 的手機控制
+- Z407 音響控制：靜音、音量、Bass、輸入切換、藍牙配對、恢復原廠設定
+- Mac 媒體控制：播放/暫停、上一首、下一首、電腦音量、靜音
+- BLE debug scan 模式，可檢查 macOS 當前掃到哪些 BLE 裝置
+- 支援桌面與手機瀏覽器的 responsive 網頁介面
 
-## 建議 macOS 使用方式：AUX 音訊 + BLE 控制
+## 建議使用方式
 
 1. 用 3.5mm AUX 音源線把 Mac 接到 Z407。
-2. 把 Z407 輸入來源切到 `AUX`。
+2. 把 Z407 的輸入切到 `AUX`。
 3. 在 Mac 上啟動這個 app。
-4. 用網頁介面控制音響音量、Bass、輸入來源與 Mac 播放。
+4. 用網頁介面控制音響或切換輸入來源。
 
-音訊會繼續走 AUX 線。BLE 只負責遙控指令。依目前本機實測，AUX 音質通常比 Bluetooth 好，Bluetooth 在音量較大時可能會爆音或破音；USB 音訊尚未實測。
+依目前本機實測，AUX 音質通常比 Bluetooth 好；Bluetooth 在音量較大時可能會爆音或破音；USB 音訊尚未實測。
 
-網頁仍然可以切換 Z407 的 `AUX`、`USB`、`Bluetooth` 三種輸入；AUX 只是 Mac 接音源線時的建議設定。
+## 快速開始
 
-## macOS 快速開始
+在 Terminal 執行：
 
 ```bash
 chmod +x run_macos.sh
 ./run_macos.sh
 ```
 
-開啟：
+或直接在 Finder 裡雙擊：
+
+```text
+Launch Logitech Z407 Web Control.command
+```
+
+然後開啟：
 
 ```text
 http://127.0.0.1:8765
 ```
 
-這個腳本會建立 Python virtual environment、安裝依賴、啟動 server，並開啟瀏覽器。
+`run_macos.sh` 會在需要時建立本機 virtual environment、安裝執行所需套件、啟動 server，並開啟瀏覽器。
 
-## 正確退出
+## 安全退出
 
-請使用網頁上的 **Quit App** 按鈕，或在終端機按 `Ctrl+C`。
+請使用網頁上的 `Quit` 按鈕，或在終端機按 `Ctrl+C`。
 
-不要用 `Ctrl+Z`。`Ctrl+Z` 只是暫停程式，不是關閉程式，可能讓本機 server 或 Bluetooth 狀態殘留。如果不小心按到 `Ctrl+Z`，可以先執行 `jobs`，再用 `kill %1` 關掉被暫停的 job。
+不要用 `Ctrl+Z`。`Ctrl+Z` 只是暫停程式，不是關閉程式，可能讓本機 server 或 BLE 狀態殘留。如果不小心按到 `Ctrl+Z`，請先執行 `jobs`，再用 `kill %1` 關掉被暫停的 job。
 
-## 用手機在同 Wi-Fi 控制
+## 手機控制
 
-執行：
+如果要讓同一個 Wi-Fi 下的手機控制：
 
 ```bash
 ./run_macos.sh --lan
 ```
 
-`run_macos.sh` 會啟動 LAN 模式，Python app 會顯示類似這樣的 LAN URL：
+程式會顯示類似這樣的區網網址：
 
 ```text
 http://192.168.1.35:8765
 ```
 
-手機連到同一個 Wi-Fi 後，用瀏覽器打開這個網址。
+手機連上同一個 Wi-Fi 後，用瀏覽器打開這個網址即可。
 
 ## macOS 權限
 
 macOS 可能會要求：
 
-- **Bluetooth 權限**：給 Terminal、Python 或封裝後的 app。
-- **輔助使用 Accessibility 權限**：讓 app 可以模擬 Mac 媒體鍵，例如播放/暫停與電腦音量。
+- **Bluetooth 權限**：給 Terminal、Python 或封裝後的 app
+- **輔助使用 Accessibility 權限**：在你使用 Mac Media Controls 按鈕時才可能需要
 
-如果 Mac Media Controls 無效，請到系統設定的隱私權與安全性檢查權限。你也可以直接用 Mac 鍵盤、選單列或控制中心調整電腦播放與音量，不一定要透過網頁。
+如果 Mac Media Controls 沒有作用，請到 **系統設定 > 隱私權與安全性** 檢查權限。
 
-## 進階設定
+## 進階用法
+
+範例：
 
 ```bash
 ./run_macos.sh --port 9090
-./run_macos.sh --lan
 ./run_macos.sh --lan --port 9090
 ./run_macos.sh --preferred-input aux
 ./run_macos.sh --verbose
@@ -88,39 +97,39 @@ macOS 可能會要求：
 - Host：`127.0.0.1`
 - Port：`8765`
 - 建議輸入來源：`aux`
-- 終端機 log：預設安靜模式。需要 HTTP access log 和重複掃描訊息時可加 `--verbose`。
+- Log：預設安靜模式
 
-如果 app 找不到 Z407，可以用 `--debug-scan` 列出 macOS 目前掃得到的 BLE 裝置，並標記可能的 Z407 裝置。
+如果偵測不到 Z407，可以執行：
 
-## Linux 說明
+```bash
+./run_macos.sh --debug-scan --duration 10 --rounds 3 --pause 3
+```
 
-Linux source-run 行為會盡量保留。Linux 的電腦媒體鍵需要 `xdotool`，Bluetooth 存取可能需要 BlueZ 權限或 capability 設定。
+這會列出 macOS 當前看得到的 BLE 裝置，並標記可能的 Z407 候選裝置。
 
-原本的 Linux installer scripts 會保留作為參考，但這個改寫版會以 macOS 使用體驗為優先。
+## 從原始碼執行
 
-## 從原始碼建置
-
-需求：
+執行時需求：
 
 - Python 3.12+
 - `pip`
 - `venv`
 
-安裝並執行：
+從原始碼執行：
 
 ```bash
 python3 -m venv venv
 source venv/bin/activate
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 python app.py
 ```
 
-## GitHub Repo 名稱建議
+開發工具：
 
-如果你要把這個改寫版發成獨立 GitHub repository，建議名稱：
-
-- `logitech-z407-macos-web-control`
-- `z407-macos-remote-web`
+```bash
+python -m pip install -r requirements-dev.txt
+pytest -q
+```
 
 ## Credits & Acknowledgments
 
@@ -146,7 +155,7 @@ https://github.com/freundTech/logi-z407-reverse-engineering
 
 這個專案建立在免費的社群工作上。請保留並尊重原作者與 reverse engineering 的貢獻。
 
-This project is 100% free。本專案完全免費。使用它、分享它，並保留原始 attribution，本身就已經是在幫助這個專案。
+本專案完全免費。使用它、分享它，並保留原始 attribution，本身就已經是在幫助這個專案。
 
 如果你想提供額外支持，任何捐款都能幫助原作者投入更多時間與資源，繼續維護這個專案與其他社群作品。也感謝所有已經支持過這個專案的人。
 
