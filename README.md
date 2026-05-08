@@ -1,147 +1,137 @@
-# Logitech Z407 Remote Control Web App 🎵
+# Logitech Z407 macOS Web Control
 
-**A modern, cross-platform web application to control your Logitech Z407 Bluetooth speakers from any device.**
+**A macOS-first web remote for Logitech Z407 speakers, adapted from the original Linux web app.**
 
-![Status](https://img.shields.io/badge/Status-Active-success) ![Platform](https://img.shields.io/badge/Platform-Linux-blue) ![License](https://img.shields.io/badge/License-Free-green)
+[繁體中文 README](README.zh-TW.md)
 
-This application creates a local web server that connects to your Z407 speakers via Bluetooth Low Energy (BLE). It allows you to control the speakers and your PC's media playback directly from your smartphone, tablet, or another computer on the network.
+This app runs a local web server on your Mac and controls the Logitech Z407 over Bluetooth Low Energy (BLE). It is designed for a common Mac setup: **audio through a 3.5mm AUX cable, control through BLE**.
 
-<p align="center">
-  <img src="logi.png" alt="Logitech Z407">
-</p>
+## Features
 
----
+- macOS-first defaults: `127.0.0.1:8765`, avoiding macOS AirPlay's common port `5000`.
+- Local-only mode by default.
+- Optional LAN mode for phone control on the same Wi-Fi.
+- Speaker controls: play/pause, speaker volume, bass, input source, pairing, factory reset.
+- Mac media controls through simulated media keys.
+- Modern responsive web UI for desktop and mobile browsers.
 
+## Recommended macOS Setup: AUX Audio + BLE Control
 
-## 🌟 Features
+1. Connect your Mac to the Z407 using a 3.5mm AUX cable.
+2. Select `AUX` as the Z407 input source.
+3. Run this app on your Mac.
+4. Use the web UI to control speaker volume, bass, input source, and Mac playback.
 
-**🎛️ Full Speaker Control:** Play/Pause, Volume Control (with visual feedback).
+The audio stays wired through AUX. BLE is only used as the remote-control channel.
 
-**💻 PC Media Interface:** Simulate multimedia keys on the host computer (Next/Prev Tack, Mute, System Volume) via the web interface.
+## Quick Start on macOS
 
-**📱 Mobile First Design:** Responsive Material Design interface that works perfectly on iOS and Android.
-
-**🐧 Linux Portable:** Ready-to-run application for **Linux**. No installation or setup required. (A Windows version is also available).
-
----
-
-## 🚀 How to Use (Standalone)
-
-### 🐧 Linux
-
-#### ✨ Easy Installation (Recommended)
-We provide an automated installer script that sets up everything for you (permissions, shortcuts, dependencies).
-
-1.  Download the **`install_linux.sh`**, **`icon.png`**, and the **`Z407_Control_Linux`** executable (put them in the same folder, e.g., `Downloads`).
-2.  Open a terminal in that folder and run:
-    ```bash
-    chmod +x install_linux.sh
-    sudo ./install_linux.sh
-    ```
-3.  Follow the on-screen instructions. It will create shortcuts on your Desktop and App Menu!
-
-#### 🛠️ Manual Usage (Standalone)
-If you prefer not to install anything:
-1.  Download the **`Z407_Control_Linux`** executable (from the `dist` folder).
-2.  Open a terminal and run the app:
-    ```bash
-    ./Z407_Control_Linux
-    ```
-3.  **Permissions Note:** Linux restricts Bluetooth access. To run without `sudo`, apply this permission once:
-    ```bash
-    sudo setcap 'cap_net_raw,cap_net_admin+eip' Z407_Control_Linux
-    ```
-4.  **Media Keys Note:** To control PC media (Spotify, YouTube, etc.), install `xdotool`:
-    ```bash
-    sudo apt install xdotool
-    ```
-
-
-
----
-
----
-
-## 🔧 Advanced Configuration (Manual IP/Port)
-
-By default, the app listens on all interfaces `0.0.0.0` at port `5000`. You can override this using command line arguments if you need a specific setup (e.g., for Docker or specific network interfaces).
-
-**Usage:**
 ```bash
-# General Syntax
-python app.py --ip <IP_ADDRESS> --port <PORT_NUMBER>
+chmod +x run_macos.sh
+./run_macos.sh
+```
 
-# Example: Listen only on localhost at port 8080
-python app.py --ip 127.0.0.1 --port 8080
+Open:
 
-# Example: Listen on a specific LAN IP
+```text
+http://127.0.0.1:8765
+```
+
+The script creates a Python virtual environment, installs dependencies, starts the server, and opens your browser.
+
+## Phone Control on the Same Wi-Fi
+
+Run:
+
+```bash
+./run_macos.sh --lan
+```
+
+The terminal will print a LAN URL such as:
+
+```text
+http://192.168.1.35:8765
+```
+
+Open that URL from your phone while it is connected to the same Wi-Fi network.
+
+## macOS Permissions
+
+macOS may ask for:
+
+- **Bluetooth permission** for Terminal, Python, or the packaged app.
+- **Accessibility permission** for Mac media keys such as play/pause and volume.
+
+If host media keys do not work, open System Settings and check Privacy & Security permissions.
+
+## Advanced Configuration
+
+```bash
+python app.py --port 9090
+python app.py --lan
 python app.py --ip 192.168.1.50 --port 9090
+python app.py --preferred-input aux
 ```
 
----
+Defaults:
 
-## 📱 Connecting from Mobile
+- Host: `127.0.0.1`
+- Port: `8765`
+- Preferred input: `aux`
 
-1.  Run the application on your PC provided above.
-2.  The console will display your local IP address, e.g., `http://192.168.1.35:5000`.
-3.  Open that URL in your phone's browser (Safari/Chrome).
+## Linux Notes
 
-### ⚠️ "Not Secure" Warning
-Since this app runs locally on your network without an SSL certificate (HTTP instead of HTTPS), browsers might warn you that the connection is not secure. This is expected for local apps.
+Linux source-run behavior is kept where practical. Host media keys on Linux require `xdotool`, and Bluetooth access may require BlueZ permissions or capabilities.
 
-*   **Chrome / Brave / Edge:** Click **"Advanced"** or **"Details"** → **"Proceed to ... (unsafe)"**.
-*   **Safari:** You might see "This Connection Is Not Private". Click **"Show Details"** → **"visit this website"**.
-*   **Firefox:** Click **"Advanced"** → **"Accept the Risk and Continue"**.
+The original Linux installer scripts remain for reference, but this adaptation focuses on macOS usage.
 
----
+## Build from Source
 
-## 🛠️ Build from Source
+Prerequisites:
 
-If you want to modify the code or build the executables yourself:
+- Python 3.12+
+- `pip`
+- `venv`
 
-### Prerequisites
-*   Python 3.12+
-*   `pip` and `venv`
+Install and run:
 
-### Setup and Build
-1.  Clone the repository.
-2.  Run the build script for your OS:
-
-**Linux:**
 ```bash
-chmod +x build_linux.sh
-./build_linux.sh
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python app.py
 ```
-*This will create a virtual environment, install dependencies (`quart`, `bleak`, etc.), and compile the binary to `dist/`.*
 
+## Repository Name Recommendation
 
+If you publish this adaptation as a separate GitHub repository, recommended names include:
 
----
+- `logitech-z407-macos-web-control`
+- `z407-macos-remote-web`
 
-## 🤝 Credits & Acknowledgments
+## Credits & Acknowledgments
+
+**Original Web App:**
+Original implementation by **Androrama**.
+
+**macOS-first Adaptation:**
+Current adaptation and maintenance by **LCY000**.
 
 **Reverse Engineering:**
 Special thanks to **freundTech** for the reverse engineering work that made this possible.
-🔗 [https://github.com/freundTech/logi-z407-reverse-engineering](https://github.com/freundTech/logi-z407-reverse-engineering)
+https://github.com/freundTech/logi-z407-reverse-engineering
 
-**Author:**
-Original Web App implementation by **Androrama**.
+**Upstream Project:**
+This version is adapted from `Androrama/Logitech-Z407-Remote-Control-Web-App---Linux`.
 
----
-
-## ⚠️ Disclaimer
+## Disclaimer
 
 This is an **unofficial** project and is not affiliated with, endorsed by, or connected to Logitech in any way.
 "Logitech" is a trademark of its respective owner. This software is provided "as is" without warranty of any kind.
 
----
+## Donations & Support
 
-## ❤️ Donations & Support
+This project is based on free community work. Please keep supporting and crediting the original author and reverse engineering work.
 
-**This project is 100% free.**
-
-Any donation (no matter how small) helps me dedicate more time and resources to this and other projects. Infinite thanks to those who have already collaborated! ❤️
-
-→ [https://androrama.com](https://androrama.com)
-
-And to those who haven't, thank you for using the project even if you don't donate, that already makes me very happy 😊
+Original author support page:
+https://androrama.com
