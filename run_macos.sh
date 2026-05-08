@@ -3,8 +3,25 @@ set -euo pipefail
 
 cd "$(dirname "$0")"
 
+if [ "${EUID:-$(id -u)}" -eq 0 ]; then
+  echo "Do not run this helper with sudo."
+  echo "macOS Bluetooth and Accessibility permissions are granted to your user session, not a root shell."
+  echo "Run: ./run_macos.sh"
+  echo "If venv permissions were changed by sudo, fix them with:"
+  echo "  sudo chown -R ${SUDO_USER:-$USER}:staff venv"
+  exit 1
+fi
+
 if [ ! -d venv ]; then
   python3 -m venv venv
+fi
+
+if [ ! -w venv ]; then
+  echo "The local venv is not writable by the current user."
+  echo "This usually happens after running the helper with sudo."
+  echo "Fix it with:"
+  echo "  sudo chown -R $USER:staff venv"
+  exit 1
 fi
 
 source venv/bin/activate
