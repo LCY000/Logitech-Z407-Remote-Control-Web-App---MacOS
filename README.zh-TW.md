@@ -4,9 +4,9 @@
 
 [English README](README.md)
 
-這個 app 會在 Mac 上啟動本機網頁伺服器，並透過 Bluetooth Low Energy（BLE）控制 Logitech Z407。它針對常見的 Mac 使用情境優化：音訊走 3.5mm AUX 音源線，BLE 只負責遙控指令。
+如果你覺得原本的無線控制器不太好用、在桌上佔空間，或是已經弄丟了，這個app 就很適合你。以我自己的使用情境來說，平常喇叭都用 AUX 接著 Mac，實體控制撥盤大多都是收起來的，一般音量調整也直接在 Mac 上調整。真正麻煩的是偶爾想調 Bass 或切換輸入來源時，沒有把撥盤放在手邊就很不方便。這個 app 要解決的，就是這種「平常不需要撥盤，但偶爾又需要那些控制」的情況。  
 
-如果你覺得原本的無線控制撥盤不太好用、在桌上佔空間，或是乾脆已經弄丟了，這個 app 就很適合。以我自己的使用情境來說，平常喇叭都用 AUX 接著 Mac，實體控制撥盤大多收起來，一般音量也直接在 Mac 上調整。真正麻煩的是偶爾想調 Bass 或切換輸入來源時，沒有把撥盤放在手邊就很不方便。這個 app 要解決的，就是這種「平常不需要撥盤，但偶爾又需要那些控制」的情況。
+這個 app 會在 Mac 上啟動本機網頁伺服器，模仿原廠無線控制器。app 會透過 Bluetooth Low Energy（BLE）控制 Logitech Z407。它針對常見的 Mac 使用情境優化：音訊走 3.5mm AUX 音源線，BLE 只負責遙控指令。  
 
 ## 功能
 
@@ -16,13 +16,13 @@
 - Mac 媒體控制：播放/暫停、上一首、下一首、電腦音量、靜音
 - BLE debug scan 模式，可檢查 macOS 當前掃到哪些 BLE 裝置
 - 支援桌面與手機瀏覽器的 responsive 網頁介面
+- 依目前本機測試，Bass 控制看起來約有 15 段可調
 
 ## 建議使用方式
 
-1. 用 3.5mm AUX 音源線把 Mac 接到 Z407。
-2. 把 Z407 的輸入切到 `AUX`。
-3. 在 Mac 上啟動這個 app。
-4. 用網頁介面控制音響或切換輸入來源。
+1. 用 3.5mm AUX 音源線把 Z407 接到 Mac 上。
+2. 在 Mac 上啟動這個 app。
+3. 用網頁介面控制音響或切換輸入來源。
 
 依目前本機實測，AUX 音質通常比 Bluetooth 好；Bluetooth 在音量較大時可能會爆音或破音；USB 音訊尚未實測。
 
@@ -49,14 +49,15 @@ http://127.0.0.1:8765
 
 `run_macos.sh` 會在需要時建立本機 virtual environment、安裝執行所需套件、啟動 server，並開啟瀏覽器。
 
-## 給其他 Mac 使用者使用
+## Mac app 啟動方式（測試中）
 
-如果是分享原始碼版本，最簡單的方式是讓對方直接啟動：
+目前最穩定的啟動方式仍然是用 Terminal 執行：
 
-- `Launch Logitech Z407 Web Control.command`
-- `./run_macos.sh`
+```bash
+./run_macos.sh
+```
 
-如果要分享成更像一般 Mac app 的形式，可以先打包：
+Mac app 版本比較方便分享給其他人使用，但目前仍屬於測試中，還需要在更多 Mac 上確認穩定性。若要打包成 app：
 
 ```bash
 ./build_macos_app.sh
@@ -68,13 +69,13 @@ http://127.0.0.1:8765
 release/Logitech Z407 Remote Control.app
 ```
 
-關閉這個 app 時，內建的本機 server 也應該會一起停止。
+如果要放到 GitHub 給其他 Mac 使用者下載，建議把打包後的 `.app` 壓成 zip，放在 GitHub Releases。這樣對方只要下載 release 裡的 zip，不需要 clone 整個 repository。不過第一次啟動時，macOS 仍可能跳出安全性、Bluetooth 或輔助使用權限提示。
 
 ## 安全退出
 
 請使用網頁上的 `Quit` 按鈕，或在終端機按 `Ctrl+C`。
 
-不要用 `Ctrl+Z`。`Ctrl+Z` 只是暫停程式，不是關閉程式，可能讓本機 server 或 BLE 狀態殘留。如果不小心按到 `Ctrl+Z`，請先執行 `jobs`，再用 `kill %1` 關掉被暫停的 job。
+不要用 `Ctrl+Z`。`Ctrl+Z` 只是暫停程式，不是關閉程式，可能讓本機 server 或 BLE 狀態殘留。如果不小心按到 `Ctrl+Z`，請先執行 `jobs` 找到被暫停的 terminal job，再用 `kill %1` 關掉它。把 Z407 拔掉電源再重新接上，通常可以清掉音響端的 Bluetooth 狀態，但不會關掉 Mac 上被暫停的 server。
 
 ## 手機控制
 
@@ -154,11 +155,11 @@ pytest -q
 
 ## Credits & Acknowledgments
 
-**原始 Web App：**
-原始實作作者為 **Androrama**。
+**macOS 版本：**
+macOS 改寫、目前維護，以及這個 macOS-first 版本由 **LCY000** 完成。這個版本是從原本的 Linux Web App 開發成針對 macOS 使用的版本。
 
-**macOS-first 改寫：**
-目前 macOS-first adaptation 與維護者為 **LCY000**。
+**原始 Linux Web App：**
+原始實作作者為 **Androrama**。
 
 **Reverse Engineering：**
 特別感謝 **freundTech** 的 reverse engineering 工作。

@@ -4,9 +4,9 @@
 
 [繁體中文 README](README.zh-TW.md)
 
-The app runs a local web server on your Mac and controls the Logitech Z407 over Bluetooth Low Energy (BLE). It is optimized for a common setup where audio stays on a 3.5mm AUX cable and BLE is only used for remote-control commands.
+If the original wireless control dial feels awkward, takes up desk space, or has already gone missing, this app can be useful. My own setup is simple: the Z407 stays connected to the Mac over AUX, the physical dial is usually put away, and normal volume changes are handled directly on the Mac. The inconvenience only shows up when I occasionally want to adjust bass or switch input sources without keeping the dial on the desk. This app is meant for that exact situation: you usually do not need the dial, but you still have quick access to the controls it provides.
 
-This app is useful when the original wireless control dial is inconvenient, takes up desk space, or has simply gone missing. My own setup is straightforward: the speaker stays connected to the Mac over AUX, the physical dial is usually put away, and day-to-day volume changes happen directly on the Mac. The annoyance only shows up when I occasionally want to adjust bass or switch inputs. This app is designed for exactly that situation: it gives you quick access to the controls that are awkward to reach once the dial is no longer on the desk.
+The app runs a local web server on your Mac and mimics the original wireless control dial. It controls the Logitech Z407 over Bluetooth Low Energy (BLE). It is optimized for a common Mac setup where audio stays on a 3.5mm AUX cable and BLE is only used for remote-control commands.
 
 ## Features
 
@@ -16,13 +16,13 @@ This app is useful when the original wireless control dial is inconvenient, take
 - Mac media controls for play/pause, previous/next, volume, and mute
 - BLE debug scan mode for diagnosing discovery issues on macOS
 - Responsive browser UI for desktop and mobile
+- Bass control appears to have 15 adjustment steps based on local testing
 
 ## Recommended Setup
 
 1. Connect your Mac to the Z407 using a 3.5mm AUX cable.
-2. Set the Z407 input to `AUX`.
-3. Run the app on your Mac.
-4. Use the browser UI to switch inputs or control the speaker.
+2. Run the app on your Mac.
+3. Use the browser UI to control the speaker or switch input sources.
 
 Based on local testing, AUX usually sounds better than Bluetooth. Bluetooth may distort at higher volume. USB audio has not been tested yet.
 
@@ -49,14 +49,15 @@ http://127.0.0.1:8765
 
 `run_macos.sh` creates a local virtual environment if needed, installs runtime dependencies, starts the server, and opens your browser.
 
-## Sharing With Other Mac Users
+## Mac App Launch Method (Experimental)
 
-For source-based use, share this repository and have people launch either:
+The most stable way to run the app is still from Terminal:
 
-- `Launch Logitech Z407 Web Control.command`
-- `./run_macos.sh`
+```bash
+./run_macos.sh
+```
 
-For a more user-friendly standalone app, build:
+The packaged Mac app is easier for other people to launch, but it is still experimental until it has been tested on more Macs. To build it:
 
 ```bash
 ./build_macos_app.sh
@@ -68,13 +69,13 @@ The packaged app will be created at:
 release/Logitech Z407 Remote Control.app
 ```
 
-Quitting the app should stop the bundled local server as well.
+For GitHub sharing, the app should be uploaded as a zipped GitHub Release asset. A zipped `.app` is much easier for other Mac users than cloning the repository, but macOS may still show security and Bluetooth permission prompts the first time it runs.
 
 ## Safer Exit
 
 Use the web UI's `Quit` button or press `Ctrl+C` in the terminal.
 
-Do not use `Ctrl+Z`. It suspends the process instead of closing it and can leave the local server or BLE state stale. If you accidentally suspend it, run `jobs` and then `kill %1`.
+Do not use `Ctrl+Z`. It suspends the process instead of closing it and can leave the local server or BLE state stale. If you accidentally suspend the app, run `jobs` to find the suspended terminal job and then `kill %1` to close it. Power-cycling the Z407 can help clear speaker-side Bluetooth state, but it does not stop a suspended server that is still on your Mac.
 
 ## Phone Control
 
@@ -154,11 +155,11 @@ pytest -q
 
 ## Credits & Acknowledgments
 
-**Original Web App:**
-Original implementation by **Androrama**.
+**macOS Version:**
+macOS adaptation, current maintenance, and this macOS-first version by **LCY000**. This version was developed from the original Linux web app into a macOS-focused app.
 
-**macOS-first Adaptation:**
-Current adaptation and maintenance by **LCY000**.
+**Original Linux Web App:**
+Original implementation by **Androrama**.
 
 **Reverse Engineering:**
 Special thanks to **freundTech** for the reverse engineering work that made this possible.
