@@ -52,6 +52,7 @@ app = BUNDLE(
     info_plist={
         'CFBundleShortVersionString': '0.1.0',
         'CFBundleVersion': '0.1.0',
+        'LSUIElement': True,
         'NSBluetoothAlwaysUsageDescription': 'This app uses Bluetooth to find and control your Logitech Z407 speaker.',
         'NSBluetoothPeripheralUsageDescription': 'This app uses Bluetooth to find and control your Logitech Z407 speaker.',
     },
