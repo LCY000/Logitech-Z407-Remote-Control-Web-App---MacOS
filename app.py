@@ -341,11 +341,15 @@ async def index():
 @app.route('/api/status')
 async def get_status():
     connected = bool(remote_control and remote_control.connected)
-    volume = remote_control.current_volume if remote_control else 0
+    volume = remote_control.current_volume if remote_control else None
+    bass   = remote_control.current_bass   if remote_control else None
     return jsonify(
         connected=connected,
         connectionState="connected" if connected else connection_state,
         volume=volume,
+        bass=bass,
+        volumeMax=VOLUME_MAX,
+        bassMax=BASS_MAX,
         platform=CURRENT_PLATFORM.key,
         networkMode="lan" if runtime_config.lan_enabled else "local",
         preferredInput=runtime_config.preferred_input,

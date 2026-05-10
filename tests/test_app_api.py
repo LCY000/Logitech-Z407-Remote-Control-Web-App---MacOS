@@ -40,7 +40,7 @@ async def test_status_includes_platform_runtime_and_error(monkeypatch):
     assert response.status_code == 200
     assert payload["connected"] is False
     assert payload["connectionState"] == "not_found"
-    assert payload["volume"] == 0
+    assert payload["volume"] is None
     assert payload["preferredInput"] == "aux"
     assert payload["networkMode"] == "local"
     assert payload["lastError"] == "Speakers not found"
@@ -210,6 +210,7 @@ async def test_send_command_failure_raises_and_updates_status():
     remote.client = FailingClient()
     remote.connected = True
     remote.current_volume = None
+    remote.current_bass = None
     z407_app.remote_control = remote
     z407_app.connection_state = "connected"
     z407_app.last_error = None
@@ -376,3 +377,33 @@ async def test_calibrate_returns_503_when_remote_disconnected():
     payload = await response.get_json()
     assert response.status_code == 503
     assert payload["success"] is False
+
+
+@pytest.mark.asyncio
+async def test_status_includes_bass_and_volume_max():
+    class FakeRemote:
+        connected = True
+        current_volume = 7
+        current_bass = 3
+
+    z407_app.remote_control = FakeRemote()
+    test_client = z407_app.app.test_client()
+    response = await test_client.get("/api/status")
+    payload = await response.get_json()
+
+    assert response.status_code == 200
+    assert payload["volume"] == 7
+    assert payload["bass"] == 3
+    assert payload["volumeMax"] == 15
+    assert payload["bassMax"] == 15
+
+
+@pytest.mark.asyncio
+async def test_status_volume_and_bass_are_null_when_no_remote():
+    z407_app.remote_control = None
+    test_client = z407_app.app.test_client()
+    response = await test_client.get("/api/status")
+    payload = await response.get_json()
+
+    assert payload["volume"] is None
+    assert payload["bass"] is None
