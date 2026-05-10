@@ -101,9 +101,16 @@ def schedule_browser_open(config: RuntimeConfig) -> None:
 
 
 def _run_quart_server() -> None:
-    # app.run() tries to add signal handlers which only work on the main thread.
-    # run_task() is the same but without signal handler setup, safe for daemon threads.
-    asyncio.run(app.run_task(host=runtime_config.host, port=runtime_config.port))
+    # app.run() and run_task() both delegate to hypercorn which adds signal handlers —
+    # only valid on the main thread. Passing shutdown_trigger bypasses that setup.
+    async def _serve() -> None:
+        shutdown_event = asyncio.Event()
+        await app.run_task(
+            host=runtime_config.host,
+            port=runtime_config.port,
+            shutdown_trigger=shutdown_event.wait,
+        )
+    asyncio.run(_serve())
 
 
 def _asset_path(*parts: str) -> str:
