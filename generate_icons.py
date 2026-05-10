@@ -55,6 +55,7 @@ def main() -> None:
     # --- Menu bar icon (high-res so Finder preview matches the app icon;
     #     app.py sets NSImage size to 18pt so macOS uses this as the menu bar source) ---
     save_png(draw_waveform(512, BLACK), "assets/icon_menubar.png")
+    save_png(draw_waveform(512, BLACK), "assets/icon_menubar@2x.png")
 
     # --- Web icons (white, matches menu bar style) ---
     save_png(draw_waveform(192, WHITE), "static/icon_192.png")
