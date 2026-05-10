@@ -340,7 +340,7 @@ async def test_calibrate_sets_both_counters_to_zero(monkeypatch):
             commands_sent.append("bass_down")
 
     z407_app.remote_control = FakeRemote()
-    _real_sleep = asyncio.sleep
+    _real_sleep = asyncio.sleep  # capture before monkeypatching to avoid infinite recursion
     monkeypatch.setattr(z407_app.asyncio, "sleep", lambda _: _real_sleep(0))
 
     test_client = z407_app.app.test_client()
@@ -358,6 +358,19 @@ async def test_calibrate_sets_both_counters_to_zero(monkeypatch):
 @pytest.mark.asyncio
 async def test_calibrate_returns_503_when_not_connected():
     z407_app.remote_control = None
+    test_client = z407_app.app.test_client()
+    response = await test_client.post("/api/calibrate")
+    payload = await response.get_json()
+    assert response.status_code == 503
+    assert payload["success"] is False
+
+
+@pytest.mark.asyncio
+async def test_calibrate_returns_503_when_remote_disconnected():
+    class DisconnectedRemote:
+        connected = False
+
+    z407_app.remote_control = DisconnectedRemote()
     test_client = z407_app.app.test_client()
     response = await test_client.post("/api/calibrate")
     payload = await response.get_json()
