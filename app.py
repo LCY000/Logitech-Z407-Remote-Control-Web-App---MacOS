@@ -38,7 +38,7 @@ COMMAND_UUID = "c2e758b9-0e78-41e0-b0cb-98a593193fc5"
 RESPONSE_UUID = "b84ac9c6-29c5-46d4-bba1-9d534784330f"
 Z407_NAME_MARKERS = ("z407", "zs283")
 SCAN_TIMEOUT_SECONDS = 8.0
-VOLUME_MAX = 50   # actual max unknown; set high so counter isn't clamped early
+VOLUME_MAX = 35   # confirmed by user testing
 BASS_MAX   = 15   # confirmed by user real-world testing
 
 STATE_FILE = Path.home() / ".z407_control_state.json"
