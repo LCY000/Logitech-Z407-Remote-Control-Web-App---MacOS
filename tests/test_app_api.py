@@ -363,8 +363,8 @@ async def test_calibrate_sets_both_counters_to_zero(monkeypatch):
 
     assert response.status_code == 200
     assert payload["success"] is True
-    assert commands_sent.count("vol_down") == 60
-    assert commands_sent.count("bass_down") == 60
+    assert commands_sent.count("vol_down") == z407_app.VOLUME_MAX + 5
+    assert commands_sent.count("bass_down") == z407_app.BASS_MAX + 5
     assert z407_app.remote_control.current_volume == 0
     assert z407_app.remote_control.current_bass == 0
 
