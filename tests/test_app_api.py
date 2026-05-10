@@ -310,7 +310,7 @@ async def test_receive_data_clamps_volume_at_max():
     remote._send_command = fake_send
 
     await remote._receive_data(None, bytearray(b"\xc0\x02"))
-    assert remote.current_volume == 15  # clamped
+    assert remote.current_volume == 50  # clamped at VOLUME_MAX
 
 
 @pytest.mark.asyncio
@@ -363,8 +363,8 @@ async def test_calibrate_sets_both_counters_to_zero(monkeypatch):
 
     assert response.status_code == 200
     assert payload["success"] is True
-    assert commands_sent.count("vol_down") == 20
-    assert commands_sent.count("bass_down") == 20
+    assert commands_sent.count("vol_down") == 60
+    assert commands_sent.count("bass_down") == 60
     assert z407_app.remote_control.current_volume == 0
     assert z407_app.remote_control.current_bass == 0
 
@@ -407,7 +407,7 @@ async def test_status_includes_bass_and_volume_max():
     assert response.status_code == 200
     assert payload["volume"] == 7
     assert payload["bass"] == 3
-    assert payload["volumeMax"] == 15
+    assert payload["volumeMax"] == 50
     assert payload["bassMax"] == 15
 
 

@@ -1,10 +1,12 @@
 import sys
 import os
+import json
 import signal
 import asyncio
 import logging
 import threading
 import webbrowser
+from pathlib import Path
 # Based on Z407 Reverse Engineering by freundTech: https://github.com/freundTech/logi-z407-reverse-engineering
 
 """
@@ -36,8 +38,30 @@ COMMAND_UUID = "c2e758b9-0e78-41e0-b0cb-98a593193fc5"
 RESPONSE_UUID = "b84ac9c6-29c5-46d4-bba1-9d534784330f"
 Z407_NAME_MARKERS = ("z407", "zs283")
 SCAN_TIMEOUT_SECONDS = 8.0
-VOLUME_MAX = 15   # assumed; confirmed by --boundary-test
+VOLUME_MAX = 50   # actual max unknown; set high so counter isn't clamped early
 BASS_MAX   = 15   # confirmed by user real-world testing
+
+STATE_FILE = Path.home() / ".z407_control_state.json"
+
+
+def _load_state() -> tuple[int | None, int | None]:
+    try:
+        data = json.loads(STATE_FILE.read_text())
+        vol  = data.get("volume")
+        bass = data.get("bass")
+        return (
+            int(vol)  if isinstance(vol,  (int, float)) else None,
+            int(bass) if isinstance(bass, (int, float)) else None,
+        )
+    except Exception:
+        return None, None
+
+
+def _save_state(volume: int | None, bass: int | None) -> None:
+    try:
+        STATE_FILE.write_text(json.dumps({"volume": volume, "bass": bass}))
+    except Exception:
+        pass
 
 
 if getattr(sys, 'frozen', False):
@@ -155,8 +179,7 @@ class Z407Remote:
         self.name = getattr(device, "name", "Logitech Z407")
         self.client = BleakClient(device)
         self.connected = False
-        self.current_volume: int | None = None
-        self.current_bass:   int | None = None
+        self.current_volume, self.current_bass = _load_state()
 
     async def connect(self):
         global connection_state, last_error
@@ -200,15 +223,19 @@ class Z407Remote:
         elif data == b"\xc0\x00":  # bass up confirmed
             if self.current_bass is not None:
                 self.current_bass = min(BASS_MAX, self.current_bass + 1)
+                _save_state(self.current_volume, self.current_bass)
         elif data == b"\xc0\x01":  # bass down confirmed
             if self.current_bass is not None:
                 self.current_bass = max(0, self.current_bass - 1)
+                _save_state(self.current_volume, self.current_bass)
         elif data == b"\xc0\x02":  # volume up confirmed
             if self.current_volume is not None:
                 self.current_volume = min(VOLUME_MAX, self.current_volume + 1)
+                _save_state(self.current_volume, self.current_bass)
         elif data == b"\xc0\x03":  # volume down confirmed
             if self.current_volume is not None:
                 self.current_volume = max(0, self.current_volume - 1)
+                _save_state(self.current_volume, self.current_bass)
 
     async def _send_command(self, command):
         global connection_state, last_error
@@ -421,15 +448,16 @@ async def calibrate():
     if not remote_control or not remote_control.connected:
         return jsonify(success=False, error="Not connected"), 503
     try:
-        for _ in range(20):
+        for _ in range(60):
             await remote_control.volume_down()
-            await asyncio.sleep(0.1)
-        for _ in range(20):
+            await asyncio.sleep(0.08)
+        for _ in range(60):
             await remote_control.bass_down()
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(0.08)
         await asyncio.sleep(0.5)
         remote_control.current_volume = 0
         remote_control.current_bass = 0
+        _save_state(0, 0)
         return jsonify(success=True)
     except Exception as e:
         return jsonify(success=False, error=str(e)), 500
