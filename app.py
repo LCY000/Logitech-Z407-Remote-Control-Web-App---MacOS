@@ -136,15 +136,26 @@ def _asset_path(*parts: str) -> str:
 
 class Z407MenuBar(rumps.App):
     def __init__(self, config: RuntimeConfig) -> None:
-        icon = _asset_path("assets", "icon_menubar.png")
+        icon_path = _asset_path("assets", "icon_menubar.png")
         super().__init__(
             "Z407 Control",
-            icon=icon if os.path.exists(icon) else None,
+            icon=None,   # set manually below so we can control the display size
             template=True,
             quit_button=None,
         )
         self._config = config
         self.menu = ["Open Z407 Control", None, "Quit"]
+        # Load the high-res source image and pin its display size to 18pt so the
+        # menu bar renders a sharp scaled-down version instead of a huge icon.
+        if os.path.exists(icon_path):
+            try:
+                from AppKit import NSImage, NSSize
+                img = NSImage.alloc().initByReferencingFile_(icon_path)
+                img.setSize_(NSSize(18, 18))
+                img.setTemplate_(True)
+                self._status_item.button().setImage_(img)
+            except Exception:
+                self.icon = icon_path  # fallback: let rumps handle it
 
     @rumps.clicked("Open Z407 Control")
     def open_web(self, _) -> None:

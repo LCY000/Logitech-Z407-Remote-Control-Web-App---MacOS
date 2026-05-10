@@ -52,9 +52,9 @@ def main() -> None:
     os.makedirs("assets", exist_ok=True)
     os.makedirs("static", exist_ok=True)
 
-    # --- Menu bar icons (black template image — macOS renders white on dark menu bar) ---
-    save_png(draw_waveform(18, BLACK), "assets/icon_menubar.png")
-    save_png(draw_waveform(36, BLACK), "assets/icon_menubar@2x.png")
+    # --- Menu bar icon (high-res so Finder preview matches the app icon;
+    #     app.py sets NSImage size to 18pt so macOS uses this as the menu bar source) ---
+    save_png(draw_waveform(512, BLACK), "assets/icon_menubar.png")
 
     # --- Web icons (white, matches menu bar style) ---
     save_png(draw_waveform(192, WHITE), "static/icon_192.png")
