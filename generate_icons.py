@@ -14,20 +14,20 @@ BLACK = (0, 0, 0, 255)
 TRANSPARENT = (0, 0, 0, 0)
 
 
-def draw_waveform(size: int, fg: tuple) -> Image.Image:
-    """Five rounded bars, tallest in centre, on a transparent background."""
+def draw_waveform(size: int, fg: tuple, bars: int = 5,
+                  heights: tuple = (0.40, 0.75, 1.00, 0.75, 0.40),
+                  margin_ratio: float = 0.08, bar_ratio: float = 0.68) -> Image.Image:
+    """Rounded waveform bars on a transparent background."""
     img = Image.new("RGBA", (size, size), TRANSPARENT)
     draw = ImageDraw.Draw(img)
 
-    bars = 5
-    heights = [0.30, 0.65, 1.00, 0.65, 0.30]
-    margin = size * 0.10
+    margin = size * margin_ratio
     usable = size - 2 * margin
     slot = usable / bars
-    bar_w = slot * 0.65
+    bar_w = slot * bar_ratio
     gap = slot - bar_w
-    radius = max(1, int(bar_w * 0.45))
-    max_bar_h = (size - margin * 2) * 0.88
+    radius = max(1, int(bar_w * 0.40))
+    max_bar_h = (size - margin * 2) * 0.90
 
     for i, h in enumerate(heights):
         x0 = margin + i * slot + gap / 2
@@ -40,6 +40,17 @@ def draw_waveform(size: int, fg: tuple) -> Image.Image:
     return img
 
 
+def draw_menubar_icon(size: int, fg: tuple) -> Image.Image:
+    """Four-bar waveform tuned for small menu bar sizes (18 / 36 px)."""
+    return draw_waveform(
+        size, fg,
+        bars=4,
+        heights=(0.55, 1.00, 0.75, 0.55),
+        margin_ratio=0.06,
+        bar_ratio=0.72,
+    )
+
+
 def save_png(img: Image.Image, path: str) -> None:
     os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
     img.save(path, format="PNG")
@@ -50,9 +61,9 @@ def main() -> None:
     os.makedirs("assets", exist_ok=True)
     os.makedirs("static", exist_ok=True)
 
-    # --- Menu bar icons (monochrome template image) ---
-    save_png(draw_waveform(18, BLACK),  "assets/icon_menubar.png")
-    save_png(draw_waveform(36, BLACK),  "assets/icon_menubar@2x.png")
+    # --- Menu bar icons (monochrome template image, 4 bars for clarity at small sizes) ---
+    save_png(draw_menubar_icon(18, BLACK), "assets/icon_menubar.png")
+    save_png(draw_menubar_icon(36, BLACK), "assets/icon_menubar@2x.png")
 
     # --- Web icons ---
     save_png(draw_waveform(192, GOLD),  "static/icon_192.png")

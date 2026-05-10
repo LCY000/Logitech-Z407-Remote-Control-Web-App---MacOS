@@ -36,6 +36,9 @@ pyinstaller \
   --workpath "${BUILD_ROOT}/build" \
   Logitech_Z407_MacOS.spec
 
+# Remove quarantine attribute so macOS doesn't show the prohibited symbol
+xattr -cr "${DIST_ROOT}/Logitech Z407 Remote Control.app" 2>/dev/null || true
+
 echo
 echo "Build complete:"
 echo "  ${DIST_ROOT}/Logitech Z407 Remote Control.app"
