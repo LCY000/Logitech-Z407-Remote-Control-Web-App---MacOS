@@ -373,6 +373,25 @@ async def shutdown():
     app.add_background_task(_shutdown)
     return jsonify(success=True, message="Shutting down...")
 
+@app.route('/api/calibrate', methods=['POST'])
+async def calibrate():
+    global remote_control
+    if not remote_control or not remote_control.connected:
+        return jsonify(success=False, error="Not connected"), 503
+    try:
+        for _ in range(20):
+            await remote_control.volume_down()
+            await asyncio.sleep(0.1)
+        for _ in range(20):
+            await remote_control.bass_down()
+            await asyncio.sleep(0.1)
+        await asyncio.sleep(0.5)
+        remote_control.current_volume = 0
+        remote_control.current_bass = 0
+        return jsonify(success=True)
+    except Exception as e:
+        return jsonify(success=False, error=str(e)), 500
+
 @app.route('/api/<command>', methods=['POST'])
 async def handle_command(command):
     global remote_control

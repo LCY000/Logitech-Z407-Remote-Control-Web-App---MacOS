@@ -322,3 +322,44 @@ async def test_receive_data_handles_connected_signal():
 
     await remote._receive_data(None, bytearray(b"\xd4\x00\x03"))
     assert remote.connected is True
+
+
+@pytest.mark.asyncio
+async def test_calibrate_sets_both_counters_to_zero(monkeypatch):
+    commands_sent = []
+
+    class FakeRemote:
+        connected = True
+        current_volume = None
+        current_bass = None
+
+        async def volume_down(self):
+            commands_sent.append("vol_down")
+
+        async def bass_down(self):
+            commands_sent.append("bass_down")
+
+    z407_app.remote_control = FakeRemote()
+    _real_sleep = asyncio.sleep
+    monkeypatch.setattr(z407_app.asyncio, "sleep", lambda _: _real_sleep(0))
+
+    test_client = z407_app.app.test_client()
+    response = await test_client.post("/api/calibrate")
+    payload = await response.get_json()
+
+    assert response.status_code == 200
+    assert payload["success"] is True
+    assert commands_sent.count("vol_down") == 20
+    assert commands_sent.count("bass_down") == 20
+    assert z407_app.remote_control.current_volume == 0
+    assert z407_app.remote_control.current_bass == 0
+
+
+@pytest.mark.asyncio
+async def test_calibrate_returns_503_when_not_connected():
+    z407_app.remote_control = None
+    test_client = z407_app.app.test_client()
+    response = await test_client.post("/api/calibrate")
+    payload = await response.get_json()
+    assert response.status_code == 503
+    assert payload["success"] is False
