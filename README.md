@@ -14,9 +14,11 @@ The app runs a local web server on your Mac and mimics the original wireless con
 - Local-only mode by default, with optional LAN mode for phone control on the same Wi-Fi
 - Z407 speaker controls for mute, volume, bass, input switching, pairing, and factory reset
 - Mac media controls for play/pause, previous/next, volume, and mute
+- Real-time volume and bass tracking: step counters update on every confirmed BLE response (volume: 32 steps, bass: 15 steps), with a Calibrate button that drives both to zero so the display stays accurate across sessions
+- Persistent state: volume and bass counters survive app restarts so you only need to calibrate once
+- macOS menu bar icon — the server keeps running after you close the browser tab; reopen from the menu bar at any time
 - BLE debug scan mode for diagnosing discovery issues on macOS
 - Responsive browser UI for desktop and mobile
-- Bass control appears to have 15 adjustment steps based on local testing
 
 ## Recommended Setup
 
@@ -49,15 +51,18 @@ http://127.0.0.1:8765
 
 `run_macos.sh` creates a local virtual environment if needed, installs runtime dependencies, starts the server, and opens your browser.
 
-## Mac App Launch Method (Experimental)
+## Mac App
 
-The most stable way to run the app is still from Terminal:
+Download the latest release from the [GitHub Releases page](../../releases), unzip, and double-click `Logitech Z407 Remote Control.app`. No Python or Terminal needed.
 
-```bash
-./run_macos.sh
-```
+macOS will show a security prompt the first time. To open it:
 
-The packaged Mac app is easier for other people to launch, but it is still experimental until it has been tested on more Macs. To build it:
+1. Right-click (or Control-click) the app → **Open**
+2. Click **Open** again in the dialog
+
+The app places an icon in the macOS menu bar. Click it to reopen the browser UI or quit the app.
+
+To build the app yourself from source:
 
 ```bash
 ./build_macos_app.sh
@@ -68,8 +73,6 @@ The packaged app will be created at:
 ```text
 release/Logitech Z407 Remote Control.app
 ```
-
-For GitHub sharing, the app should be uploaded as a zipped GitHub Release asset. A zipped `.app` is much easier for other Mac users than cloning the repository, but macOS may still show security and Bluetooth permission prompts the first time it runs.
 
 ## Safer Exit
 
