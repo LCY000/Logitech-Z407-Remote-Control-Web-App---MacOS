@@ -55,6 +55,8 @@ http://127.0.0.1:8765
 
 從 [GitHub Releases 頁面](../../releases) 下載最新版本，解壓縮後直接雙擊 `Logitech Z407 Remote Control.app`，不需要 Python 或 Terminal。
 
+可以把 app 拖到「**應用程式**」資料夾，之後就能像一般 Mac app 一樣從那裡啟動。
+
 第一次啟動時 macOS 會出現安全性提示，解決方式：
 
 1. 在 app 上按右鍵（或 Control + 點一下）→ **打開**
