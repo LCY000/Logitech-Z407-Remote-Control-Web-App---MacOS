@@ -108,6 +108,10 @@ async def boundary_test(duration: float) -> int:
         if not devices:
             devices = await BleakScanner.discover(timeout=duration)
         candidates = [d for d in devices if is_z407_like(d)]
+    except BleakBluetoothNotAvailableError as exc:
+        print(f"Bluetooth unavailable: {exc}")
+        print("Check macOS Bluetooth is on and Terminal/Python has Bluetooth permission.")
+        return 3
     except BleakError as exc:
         print(f"Scan failed: {exc}")
         return 4
@@ -128,35 +132,42 @@ async def boundary_test(duration: float) -> int:
         print(f"  [{label} step {step:>2}] notification: {hex_data}")
         received.append((step, bytes(data)))
 
-    async with BleakClient(device) as client:
-        await client.start_notify(RESPONSE_UUID, on_notify)
+    try:
+        async with BleakClient(device) as client:
+            await client.start_notify(RESPONSE_UUID, on_notify)
 
-        # Handshake
-        await client.write_gatt_char(COMMAND_UUID, bytes.fromhex("8405"), response=False)
-        await asyncio.sleep(0.3)
-        await client.write_gatt_char(COMMAND_UUID, bytes.fromhex("8400"), response=False)
-        await asyncio.sleep(0.3)
-        print("Connected. Starting boundary test...\n")
+            on_notify._step = 0
+            on_notify._label = "handshake"
 
-        # Phase 1: vol_down × 25
-        print("--- Phase 1: vol_down × 25 ---")
-        on_notify._label = "vol_down"
-        for step in range(1, 26):
-            on_notify._step = step
-            await client.write_gatt_char(COMMAND_UUID, bytes.fromhex("8003"), response=False)
-            await asyncio.sleep(0.15)
+            # Handshake
+            await client.write_gatt_char(COMMAND_UUID, bytes.fromhex("8405"), response=False)
+            await asyncio.sleep(0.3)
+            await client.write_gatt_char(COMMAND_UUID, bytes.fromhex("8400"), response=False)
+            await asyncio.sleep(0.3)
+            print("Connected. Starting boundary test...\n")
 
-        await asyncio.sleep(0.5)
+            # Phase 1: vol_down × 25
+            print("--- Phase 1: vol_down × 25 ---")
+            on_notify._label = "vol_down"
+            for step in range(1, 26):
+                on_notify._step = step
+                await client.write_gatt_char(COMMAND_UUID, bytes.fromhex("8003"), response=False)
+                await asyncio.sleep(0.15)
 
-        # Phase 2: bass_down × 25
-        print("\n--- Phase 2: bass_down × 25 ---")
-        on_notify._label = "bass_down"
-        for step in range(1, 26):
-            on_notify._step = step
-            await client.write_gatt_char(COMMAND_UUID, bytes.fromhex("8001"), response=False)
-            await asyncio.sleep(0.15)
+            await asyncio.sleep(0.5)
 
-        await asyncio.sleep(0.5)
+            # Phase 2: bass_down × 25
+            print("\n--- Phase 2: bass_down × 25 ---")
+            on_notify._label = "bass_down"
+            for step in range(1, 26):
+                on_notify._step = step
+                await client.write_gatt_char(COMMAND_UUID, bytes.fromhex("8001"), response=False)
+                await asyncio.sleep(0.15)
+
+            await asyncio.sleep(0.5)
+    except BleakError as exc:
+        print(f"\nConnection or GATT error: {exc}")
+        return 4
 
     print("\n--- Summary: unique notification bytes ---")
     seen: dict[bytes, list[int]] = {}
