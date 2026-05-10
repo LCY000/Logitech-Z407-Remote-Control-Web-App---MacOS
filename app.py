@@ -450,10 +450,10 @@ async def calibrate():
     try:
         for _ in range(60):
             await remote_control.volume_down()
-            await asyncio.sleep(0.08)
+            await asyncio.sleep(0.15)
         for _ in range(60):
             await remote_control.bass_down()
-            await asyncio.sleep(0.08)
+            await asyncio.sleep(0.15)
         await asyncio.sleep(0.5)
         remote_control.current_volume = 0
         remote_control.current_bass = 0
