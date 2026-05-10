@@ -14,9 +14,11 @@
 - 預設只允許本機控制，也可選 LAN 模式讓同 Wi-Fi 的手機控制
 - Z407 音響控制：靜音、音量、Bass、輸入切換、藍牙配對、恢復原廠設定
 - Mac 媒體控制：播放/暫停、上一首、下一首、電腦音量、靜音
+- 即時音量與 Bass 追蹤：每次 BLE 指令確認後同步更新步數計數器（音量共 32 級、Bass 共 15 級），網頁上顯示目前的數值；附「校正」按鈕，一鍵將兩者歸零，確保顯示正確
+- 跨次啟動狀態保留：音量與 Bass 計數在重新啟動後仍保留，校正一次即可長期使用
+- macOS 選單列圖示：關閉瀏覽器分頁後伺服器仍在背景持續運作，隨時可從選單列重新開啟網頁介面或退出
 - BLE debug scan 模式，可檢查 macOS 當前掃到哪些 BLE 裝置
 - 支援桌面與手機瀏覽器的 responsive 網頁介面
-- 依目前本機測試，Bass 控制看起來約有 15 段可調
 
 ## 建議使用方式
 
@@ -49,15 +51,18 @@ http://127.0.0.1:8765
 
 `run_macos.sh` 會在需要時建立本機 virtual environment、安裝執行所需套件、啟動 server，並開啟瀏覽器。
 
-## Mac app 啟動方式（測試中）
+## Mac App 下載與使用
 
-目前最穩定的啟動方式仍然是用 Terminal 執行：
+從 [GitHub Releases 頁面](../../releases) 下載最新版本，解壓縮後直接雙擊 `Logitech Z407 Remote Control.app`，不需要 Python 或 Terminal。
 
-```bash
-./run_macos.sh
-```
+第一次啟動時 macOS 會出現安全性提示，解決方式：
 
-Mac app 版本比較方便分享給其他人使用，但目前仍屬於測試中，還需要在更多 Mac 上確認穩定性。若要打包成 app：
+1. 在 app 上按右鍵（或 Control + 點一下）→ **打開**
+2. 在跳出的對話框再點一次 **打開**
+
+啟動後，選單列會出現圖示。點一下可重新開啟網頁介面或退出 app。
+
+若要自己從原始碼打包：
 
 ```bash
 ./build_macos_app.sh
@@ -68,8 +73,6 @@ Mac app 版本比較方便分享給其他人使用，但目前仍屬於測試中
 ```text
 release/Logitech Z407 Remote Control.app
 ```
-
-如果要放到 GitHub 給其他 Mac 使用者下載，建議把打包後的 `.app` 壓成 zip，放在 GitHub Releases。這樣對方只要下載 release 裡的 zip，不需要 clone 整個 repository。不過第一次啟動時，macOS 仍可能跳出安全性、Bluetooth 或輔助使用權限提示。
 
 ## 安全退出
 
