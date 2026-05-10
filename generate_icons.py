@@ -9,15 +9,17 @@ import subprocess
 import shutil
 from PIL import Image, ImageDraw
 
-GOLD = (242, 184, 75, 255)
+GOLD  = (242, 184, 75, 255)
+WHITE = (255, 255, 255, 255)
 BLACK = (0, 0, 0, 255)
 TRANSPARENT = (0, 0, 0, 0)
 
 
-def draw_waveform(size: int, fg: tuple, bars: int = 5,
+def draw_waveform(size: int, fg: tuple,
                   heights: tuple = (0.40, 0.75, 1.00, 0.75, 0.40),
                   margin_ratio: float = 0.08, bar_ratio: float = 0.68) -> Image.Image:
-    """Rounded waveform bars on a transparent background."""
+    """Five rounded waveform bars on a transparent background."""
+    bars = len(heights)
     img = Image.new("RGBA", (size, size), TRANSPARENT)
     draw = ImageDraw.Draw(img)
 
@@ -40,17 +42,6 @@ def draw_waveform(size: int, fg: tuple, bars: int = 5,
     return img
 
 
-def draw_menubar_icon(size: int, fg: tuple) -> Image.Image:
-    """Four-bar waveform tuned for small menu bar sizes (18 / 36 px)."""
-    return draw_waveform(
-        size, fg,
-        bars=4,
-        heights=(0.55, 1.00, 0.75, 0.55),
-        margin_ratio=0.06,
-        bar_ratio=0.72,
-    )
-
-
 def save_png(img: Image.Image, path: str) -> None:
     os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
     img.save(path, format="PNG")
@@ -61,30 +52,30 @@ def main() -> None:
     os.makedirs("assets", exist_ok=True)
     os.makedirs("static", exist_ok=True)
 
-    # --- Menu bar icons (monochrome template image, 4 bars for clarity at small sizes) ---
-    save_png(draw_menubar_icon(18, BLACK), "assets/icon_menubar.png")
-    save_png(draw_menubar_icon(36, BLACK), "assets/icon_menubar@2x.png")
+    # --- Menu bar icons (black template image — macOS renders white on dark menu bar) ---
+    save_png(draw_waveform(18, BLACK), "assets/icon_menubar.png")
+    save_png(draw_waveform(36, BLACK), "assets/icon_menubar@2x.png")
 
-    # --- Web icons ---
-    save_png(draw_waveform(192, GOLD),  "static/icon_192.png")
-    save_png(draw_waveform(512, GOLD),  "static/icon_512.png")
+    # --- Web icons (white, matches menu bar style) ---
+    save_png(draw_waveform(192, WHITE), "static/icon_192.png")
+    save_png(draw_waveform(512, WHITE), "static/icon_512.png")
 
-    # --- Favicon (16 + 32 px embedded in one .ico) ---
-    icon16 = draw_waveform(16, GOLD)
-    icon32 = draw_waveform(32, GOLD)
+    # --- Favicon (white, 16 + 32 px embedded in one .ico) ---
+    icon16 = draw_waveform(16, WHITE)
+    icon32 = draw_waveform(32, WHITE)
     icon16.save("static/favicon.ico", format="ICO",
                 sizes=[(16, 16), (32, 32)], append_images=[icon32])
     print("  wrote static/favicon.ico")
 
-    # --- macOS .icns via iconutil ---
+    # --- macOS .icns (white bars — visible against macOS grey rounded-square background) ---
     iconset = "assets/icon.iconset"
     if os.path.exists(iconset):
         shutil.rmtree(iconset)
     os.makedirs(iconset)
 
     for base_size in [16, 32, 128, 256, 512]:
-        save_png(draw_waveform(base_size,      GOLD), f"{iconset}/icon_{base_size}x{base_size}.png")
-        save_png(draw_waveform(base_size * 2,  GOLD), f"{iconset}/icon_{base_size}x{base_size}@2x.png")
+        save_png(draw_waveform(base_size,     WHITE), f"{iconset}/icon_{base_size}x{base_size}.png")
+        save_png(draw_waveform(base_size * 2, WHITE), f"{iconset}/icon_{base_size}x{base_size}@2x.png")
 
     result = subprocess.run(
         ["iconutil", "-c", "icns", iconset, "-o", "assets/icon_app.icns"],
