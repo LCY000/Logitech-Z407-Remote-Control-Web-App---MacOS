@@ -646,11 +646,30 @@
             }
         }
 
+        async function playSilentPrime(durationMs = 1500) {
+            // Plays an inaudible tone to establish the Bluetooth audio stream
+            // before BLE commands are sent — the speaker ignores BLE when idle.
+            try {
+                const ctx = new AudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                gain.gain.value = 0.0001;
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                await new Promise(r => setTimeout(r, durationMs));
+                osc.stop();
+                await ctx.close();
+            } catch (_) { /* ignore — better to proceed than block */ }
+        }
+
         async function calibrate() {
             if (!confirm('Send vol and bass to minimum? This takes ~5 seconds and will change your volume.')) return;
             calibrateBtn.disabled = true;
-            calibrateStatus.innerText = 'Calibrating…';
+            calibrateStatus.innerText = 'Waking up audio stream…';
             calibrateStatus.style.color = 'var(--warn)';
+            await playSilentPrime(1500);
+            calibrateStatus.innerText = 'Calibrating…';
             try {
                 const data = await requestJson('/api/calibrate', { method: 'POST' });
                 if (data?.success) {
