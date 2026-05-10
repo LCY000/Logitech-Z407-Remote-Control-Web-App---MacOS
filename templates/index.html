@@ -584,14 +584,15 @@
         async function updateStatus() {
             try {
                 const data = await requestJson('/api/status');
+                if (!data) return;
                 connectionStatus.innerText = data.connected ? 'Connected' : data.connectionState || 'Disconnected';
                 connectionStatus.className = `pill ${data.connected ? 'good' : 'bad'}`;
                 networkMode.innerText = data.networkMode === 'lan' ? 'LAN enabled' : 'Local only';
                 preferredInput.innerText = `${(data.preferredInput || 'aux').toUpperCase()} recommended`;
                 markPreferredInput(data.preferredInput || 'aux');
 
-                const vMax = data.volumeMax ?? 15;
-                const bMax = data.bassMax ?? 15;
+                const vMax = (data.volumeMax ?? 15) || 15;
+                const bMax = (data.bassMax ?? 15) || 15;
 
                 if (data.volume != null) {
                     volBar.style.width = `${(data.volume / vMax) * 100}%`;
