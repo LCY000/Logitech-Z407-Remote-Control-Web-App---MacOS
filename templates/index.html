@@ -235,8 +235,13 @@
         }
 
         .advanced {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .advanced-pair-row {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: 1fr 1fr;
             gap: 10px;
         }
 
@@ -363,7 +368,6 @@
             .span-7, .span-5, .span-12 { grid-column: span 1; }
             .control-grid { grid-template-columns: 1fr; }
             .wide { grid-column: span 1; }
-            .advanced { grid-template-columns: repeat(2, 1fr); }
         }
     </style>
 </head>
@@ -457,8 +461,10 @@
             <div class="card span-5">
                 <h2>Advanced</h2>
                 <div class="advanced">
-                    <button onclick="confirmAction('bluetooth_pair', 'Activate Bluetooth pairing mode?')">Pair</button>
-                    <button class="danger" onclick="confirmAction('factory_reset', 'Factory reset the Z407? This can erase paired devices.')">Reset</button>
+                    <div class="advanced-pair-row">
+                        <button onclick="confirmAction('bluetooth_pair', 'Activate Bluetooth pairing mode?')">藍牙配對</button>
+                        <button class="danger" onclick="confirmAction('factory_reset', 'Factory reset the Z407? This can erase paired devices.')">Reset</button>
+                    </div>
                     <button onclick="window.location.reload()">Refresh</button>
                     <button class="danger" onclick="shutdownApp()">Quit</button>
                 </div>
@@ -549,6 +555,7 @@
                 if (data?.success) {
                     statusText.innerText = `Command sent: ${command}`;
                     statusText.style.color = 'var(--good)';
+                    if (command === 'factory_reset') markPreferredInput('');
                     setTimeout(updateStatus, 350);
                 } else {
                     throw new Error(data?.error || 'Command failed');
