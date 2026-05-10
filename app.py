@@ -125,6 +125,7 @@ class Z407MenuBar(rumps.App):
             "Z407 Control",
             icon=icon if os.path.exists(icon) else None,
             template=True,
+            quit_button=None,
         )
         self._config = config
         self.menu = ["Open Z407 Control", None, "Quit"]
