@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Logitech Z407 Web Control</title>
     <meta name="theme-color" content="#101820">
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <link rel="icon" type="image/png" sizes="192x192" href="/static/icon_192.png">
+    <link rel="apple-touch-icon" href="/static/icon_192.png">
     <style>
         :root {
             --bg: #101820;
@@ -270,6 +273,90 @@
             padding-left: 18px;
         }
 
+        .meter-row {
+            display: grid;
+            grid-template-columns: 5rem 1fr 3.5rem;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .meter-label {
+            font-size: 0.74rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .meter-value {
+            font-size: 0.88rem;
+            color: var(--text);
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .notice-banner {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            background: rgba(242, 184, 75, 0.08);
+            border: 1px solid rgba(242, 184, 75, 0.30);
+            border-radius: 18px;
+            padding: 14px 18px;
+        }
+
+        .notice-banner-icon {
+            font-size: 1.2rem;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .notice-title {
+            font-size: 0.86rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 4px;
+        }
+
+        .notice-body {
+            font-size: 0.8rem;
+            color: var(--muted);
+            line-height: 1.5;
+        }
+
+        .notes-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .notes-card {
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 14px;
+            padding: 14px 16px;
+        }
+
+        .notes-card h3 {
+            font-size: 0.72rem;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 10px;
+            margin-top: 0;
+        }
+
+        .notes-card ul {
+            margin: 0;
+            padding-left: 16px;
+            color: var(--muted);
+            font-size: 0.82rem;
+            line-height: 1.75;
+        }
+
+        @media (max-width: 820px) {
+            .notes-grid { grid-template-columns: 1fr; }
+            .meter-row { grid-template-columns: 4rem 1fr 3rem; }
+        }
+
         @media (max-width: 820px) {
             body { padding: 16px; }
             .hero, .grid { grid-template-columns: 1fr; }
@@ -294,10 +381,28 @@
                 <p class="status-line" id="statusText" role="status" aria-live="polite">Starting speaker scan...</p>
             </div>
             <div class="card slider-card">
-                <h2>Session Volume Estimate</h2>
-                <div class="meter"><div class="meter-fill" id="volBar"></div></div>
-                <p><strong id="volText">50%</strong></p>
-                <p class="status-line">Only tracks changes made from this page. The Z407 does not report exact speaker volume or bass level to this app.</p>
+                <h2>Volume &amp; Bass</h2>
+
+                <div class="meter-row">
+                    <span class="meter-label">Volume</span>
+                    <div class="meter"><div class="meter-fill" id="volBar"></div></div>
+                    <span class="meter-value" id="volText">&#8212; / 15</span>
+                </div>
+
+                <div class="meter-row">
+                    <span class="meter-label">Bass</span>
+                    <div class="meter"><div class="meter-fill" id="bassBar" style="background: linear-gradient(90deg, #5e97f6, #a8d8ff);"></div></div>
+                    <span class="meter-value" id="bassText">&#8212; / 15</span>
+                </div>
+
+                <button id="calibrateBtn" onclick="calibrate()" style="margin-top:6px;">
+                    Calibrate
+                    <span class="btn-label">Sends vol &amp; bass to minimum, then tracks from 0</span>
+                </button>
+
+                <p class="status-line" id="calibrateStatus">
+                    Position is estimated. Tap Calibrate to set both to 0 and start tracking from there.
+                </p>
             </div>
         </section>
 
@@ -360,14 +465,32 @@
             </div>
 
             <div class="card span-12">
-                <h2>Setup Notes</h2>
-                <ul class="help-list" id="helpList">
-                    <li>AUX usually sounds better than Bluetooth based on local testing.</li>
-                    <li>Bluetooth may distort at higher volume. USB audio has not been tested yet.</li>
-                    <li>Bass control appears to have 15 adjustment steps based on local testing.</li>
-                    <li>Use Quit or Ctrl+C to exit safely. If the Z407 is not found after restarting the app, unplug speaker power for a few seconds and plug it back in.</li>
-                    <li>Loading platform notes...</li>
-                </ul>
+                <div class="notice-banner" style="margin-bottom: 18px;">
+                    <span class="notice-banner-icon">&#9635;</span>
+                    <div>
+                        <p class="notice-title">Closing this tab won't quit the app</p>
+                        <p class="notice-body">Z407 Control keeps running in the menu bar. Click the icon to reopen or quit.</p>
+                    </div>
+                </div>
+
+                <div class="notes-grid">
+                    <div class="notes-card">
+                        <h3>Audio Tips</h3>
+                        <ul>
+                            <li>AUX usually sounds better than Bluetooth</li>
+                            <li>Bluetooth may distort at high volume</li>
+                            <li>Bass has ~15 adjustment steps</li>
+                        </ul>
+                    </div>
+                    <div class="notes-card" id="troubleshootingCard">
+                        <h3>Permissions &amp; Troubleshooting</h3>
+                        <ul id="helpList">
+                            <li>Bluetooth: macOS may ask for permission</li>
+                            <li>Mac media keys require Accessibility access</li>
+                            <li>If the status bar shows "Scanning&#8230;" for a long time, unplug and replug the speaker's power cable to reset its state</li>
+                        </ul>
+                    </div>
+                </div>
             </div>
         </section>
     </main>
@@ -384,13 +507,10 @@
         const hostMediaButtons = document.querySelectorAll('[data-host-media]');
         const volBar = document.getElementById('volBar');
         const volText = document.getElementById('volText');
-        const helpList = document.getElementById('helpList');
-        const staticHelpNotes = [
-            'AUX usually sounds better than Bluetooth based on local testing.',
-            'Bluetooth may distort at higher volume. USB audio has not been tested yet.',
-            'Bass control appears to have 15 adjustment steps based on local testing.',
-            'Use Quit or Ctrl+C to exit safely. If the Z407 is not found after restarting the app, unplug speaker power for a few seconds and plug it back in.'
-        ];
+        const bassBar = document.getElementById('bassBar');
+        const bassText = document.getElementById('bassText');
+        const calibrateBtn = document.getElementById('calibrateBtn');
+        const calibrateStatus = document.getElementById('calibrateStatus');
 
         async function requestJson(url, options = {}) {
             let response;
@@ -461,16 +581,6 @@
             hostMediaUnsupported.classList.toggle('visible', !isSupported);
         }
 
-        function renderHelpNotes(notes) {
-            helpList.innerHTML = '';
-            const uniqueNotes = [...new Set([...staticHelpNotes, ...notes])];
-            uniqueNotes.forEach(note => {
-                const item = document.createElement('li');
-                item.innerText = note;
-                helpList.appendChild(item);
-            });
-        }
-
         async function updateStatus() {
             try {
                 const data = await requestJson('/api/status');
@@ -480,9 +590,23 @@
                 preferredInput.innerText = `${(data.preferredInput || 'aux').toUpperCase()} recommended`;
                 markPreferredInput(data.preferredInput || 'aux');
 
-                if (data.volume !== undefined) {
-                    volBar.style.width = `${data.volume}%`;
-                    volText.innerText = `${data.volume}%`;
+                const vMax = data.volumeMax ?? 15;
+                const bMax = data.bassMax ?? 15;
+
+                if (data.volume != null) {
+                    volBar.style.width = `${(data.volume / vMax) * 100}%`;
+                    volText.innerText = `${data.volume} / ${vMax}`;
+                } else {
+                    volBar.style.width = '0%';
+                    volText.innerText = `— / ${vMax}`;
+                }
+
+                if (data.bass != null) {
+                    bassBar.style.width = `${(data.bass / bMax) * 100}%`;
+                    bassText.innerText = `${data.bass} / ${bMax}`;
+                } else {
+                    bassBar.style.width = '0%';
+                    bassText.innerText = `— / ${bMax}`;
                 }
 
                 if (!data.connected && data.lastError) {
@@ -503,10 +627,9 @@
                 setupHint.innerText = data.setupHint || setupHint.innerText;
                 hostMediaTitle.innerText = data.platform === 'macos' ? 'Mac Media Controls' : 'Host Media Controls';
                 setHostMediaSupport(data.hostMediaKeysSupported !== false);
-                renderHelpNotes(data.permissionNotes || []);
                 markPreferredInput(data.preferredInput || 'aux');
             } catch (error) {
-                renderHelpNotes([`Could not load platform notes: ${error.message}`]);
+                console.warn('Could not load platform capabilities:', error.message);
             }
         }
 
@@ -517,6 +640,28 @@
                 document.body.innerHTML = '<main class="shell"><section class="card"><h1>Server closed</h1><p class="subtitle">You can close this tab now.</p></section></main>';
             } catch (error) {
                 alert(`Error shutting down: ${error.message}`);
+            }
+        }
+
+        async function calibrate() {
+            if (!confirm('Send vol and bass to minimum? This takes ~5 seconds and will change your volume.')) return;
+            calibrateBtn.disabled = true;
+            calibrateStatus.innerText = 'Calibrating…';
+            calibrateStatus.style.color = 'var(--warn)';
+            try {
+                const data = await requestJson('/api/calibrate', { method: 'POST' });
+                if (data?.success) {
+                    calibrateStatus.innerText = 'Calibrated — volume and bass are now at 0.';
+                    calibrateStatus.style.color = 'var(--good)';
+                    setTimeout(updateStatus, 300);
+                } else {
+                    throw new Error(data?.error || 'Calibration failed');
+                }
+            } catch (error) {
+                calibrateStatus.innerText = `Error: ${error.message}`;
+                calibrateStatus.style.color = 'var(--bad)';
+            } finally {
+                calibrateBtn.disabled = false;
             }
         }
 

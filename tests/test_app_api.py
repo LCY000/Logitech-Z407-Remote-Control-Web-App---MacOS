@@ -234,6 +234,7 @@ async def test_send_command_failure_raises_and_updates_status():
 def test_ui_labels_distinguish_speaker_and_mac_controls():
     html = Path("templates/index.html").read_text()
 
+    # Speaker controls still present
     assert "Mute / Unmute" in html
     assert "speaker-skip-row" in html
     assert html.index("speaker-skip-row") < html.index("Speaker volume")
@@ -241,15 +242,27 @@ def test_ui_labels_distinguish_speaker_and_mac_controls():
     assert "Subwoofer bass" in html
     assert "Mac Media Controls" in html
     assert "These are normal computer media controls" in html
+
+    # New volume/bass card
+    assert "Volume" in html
+    assert "calibrateBtn" in html
+    assert "Calibrate" in html
+
+    # Menu bar notice
+    assert "Closing this tab won't quit the app" in html
+    assert "keeps running in the menu bar" in html
+
+    # Reorganised notes
+    assert "Audio Tips" in html
     assert "AUX usually sounds better than Bluetooth" in html
-    assert "Session Volume Estimate" in html
-    assert "Only tracks changes made from this page" in html
-    assert "Use Quit or Ctrl+C to exit safely" in html
-    assert "unplug speaker power for a few seconds" in html
-    assert "const staticHelpNotes = [" in html
-    assert "new Set([...staticHelpNotes, ...notes])" in html
-    assert "hero-actions" not in html
-    assert "quit-button" not in html
+    assert "Permissions" in html
+    assert "Scanning" in html
+    assert "power cable" in html
+
+    # Old strings removed
+    assert "Session Volume Estimate" not in html
+    assert "Only tracks changes made from this page" not in html
+    assert "staticHelpNotes" not in html
 
 
 def test_startup_banner_mentions_safe_exit():
