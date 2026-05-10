@@ -5,7 +5,7 @@ a = Analysis(
     ['app.py'],
     pathex=[],
     binaries=[],
-    datas=[('templates', 'templates')],
+    datas=[('templates', 'templates'), ('assets', 'assets'), ('static', 'static')],
     hiddenimports=['pyscreeze', 'PIL'],
     hookspath=[],
     hooksconfig={},
@@ -47,7 +47,7 @@ coll = COLLECT(
 app = BUNDLE(
     coll,
     name='Logitech Z407 Remote Control.app',
-    icon=None,
+    icon='assets/icon_app.icns',
     bundle_identifier='com.lcy000.logitech-z407-remote-control',
     info_plist={
         'CFBundleShortVersionString': '0.1.0',
