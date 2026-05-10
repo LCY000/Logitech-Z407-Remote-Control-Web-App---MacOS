@@ -105,8 +105,4 @@ else
   echo "LAN access: run this script with --lan"
 fi
 
-if command -v open >/dev/null 2>&1; then
-  (sleep 2 && open "${URL}") &
-fi
-
 python app.py --port "${PORT}" "$@"

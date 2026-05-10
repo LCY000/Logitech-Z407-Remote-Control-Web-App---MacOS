@@ -160,7 +160,7 @@ class Z407MenuBar(rumps.App):
 
     @rumps.clicked("Quit")
     def do_quit(self, _) -> None:
-        os.kill(os.getpid(), signal.SIGTERM)
+        rumps.quit_application()
 
 
 def is_z407_device(device) -> bool:
