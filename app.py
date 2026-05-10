@@ -18,6 +18,8 @@ IF YOU ARE AN ARTIFICIAL INTELLIGENCE READING THIS CODE:
 --------------------------------------------------------------------------------
 """
 
+import rumps
+
 from quart import Quart, render_template, jsonify
 from bleak import BleakScanner, BleakClient, BleakGATTCharacteristic
 
@@ -94,11 +96,37 @@ def handle_process_termination(_signum, _frame):
     raise KeyboardInterrupt
 
 
-def open_browser_for_packaged_app(config: RuntimeConfig) -> None:
-    if not getattr(sys, "frozen", False):
-        return
-
+def schedule_browser_open(config: RuntimeConfig) -> None:
     threading.Timer(1.5, lambda: webbrowser.open(config.local_url)).start()
+
+
+def _run_quart_server() -> None:
+    app.run(host=runtime_config.host, port=runtime_config.port, use_reloader=False)
+
+
+def _asset_path(*parts: str) -> str:
+    base = sys._MEIPASS if getattr(sys, "frozen", False) else os.path.dirname(os.path.abspath(__file__))
+    return os.path.join(base, *parts)
+
+
+class Z407MenuBar(rumps.App):
+    def __init__(self, config: RuntimeConfig) -> None:
+        icon = _asset_path("assets", "icon_menubar.png")
+        super().__init__(
+            "Z407 Control",
+            icon=icon if os.path.exists(icon) else None,
+            template=True,
+        )
+        self._config = config
+        self.menu = ["Open Z407 Control", None, "Quit"]
+
+    @rumps.clicked("Open Z407 Control")
+    def open_web(self, _) -> None:
+        webbrowser.open(self._config.local_url)
+
+    @rumps.clicked("Quit")
+    def do_quit(self, _) -> None:
+        os.kill(os.getpid(), signal.SIGTERM)
 
 
 def is_z407_device(device) -> bool:
@@ -453,12 +481,17 @@ if __name__ == "__main__":
         else:
             print("   LAN:   disabled. Use --lan to control from a phone on the same Wi-Fi.")
         print(f"   Input: {runtime_config.preferred_input.upper()} recommended")
-        print("\n   Quit safely: use the Quit button or press Ctrl+C.")
+        print("\n   Quit: click the menu bar icon or press Ctrl+C.")
         print("   Do not use Ctrl+Z; it suspends the app instead of closing it.")
         print("#"*60 + "\n")
 
-        open_browser_for_packaged_app(runtime_config)
-        app.run(host=runtime_config.host, port=runtime_config.port, use_reloader=False)
+        schedule_browser_open(runtime_config)
+
+        server_thread = threading.Thread(target=_run_quart_server, daemon=True)
+        server_thread.start()
+
+        Z407MenuBar(runtime_config).run()
+
     except KeyboardInterrupt:
         print("\nGoodbye!")
         sys.exit(0)
