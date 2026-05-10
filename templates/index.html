@@ -650,20 +650,6 @@
             calibrateBtn.disabled = true;
             calibrateStatus.innerText = 'Calibrating…';
             calibrateStatus.style.color = 'var(--warn)';
-
-            // Keep an inaudible tone playing for the entire calibration so the
-            // Bluetooth audio stream stays active — the speaker ignores BLE when idle.
-            let audioCtx, osc;
-            try {
-                audioCtx = new AudioContext();
-                osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                gain.gain.value = 0.0001;
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start();
-            } catch (_) { /* proceed even if Web Audio is unavailable */ }
-
             try {
                 const data = await requestJson('/api/calibrate', { method: 'POST' });
                 if (data?.success) {
@@ -678,7 +664,6 @@
                 calibrateStatus.style.color = 'var(--bad)';
             } finally {
                 calibrateBtn.disabled = false;
-                try { osc?.stop(); await audioCtx?.close(); } catch (_) {}
             }
         }
 
