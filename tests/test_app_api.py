@@ -209,7 +209,7 @@ async def test_send_command_failure_raises_and_updates_status():
     remote = z407_app.Z407Remote.__new__(z407_app.Z407Remote)
     remote.client = FailingClient()
     remote.connected = True
-    remote.current_volume = 50
+    remote.current_volume = None
     z407_app.remote_control = remote
     z407_app.connection_state = "connected"
     z407_app.last_error = None
@@ -218,7 +218,7 @@ async def test_send_command_failure_raises_and_updates_status():
         await remote.volume_up()
 
     assert remote.connected is False
-    assert remote.current_volume == 50
+    assert remote.current_volume is None
 
     test_client = z407_app.app.test_client()
     response = await test_client.get("/api/status")
@@ -271,3 +271,54 @@ def test_app_source_mentions_sigterm_and_packaged_quit_support():
     assert "open_browser_for_packaged_app(runtime_config)" in source
     assert "webbrowser.open(config.local_url)" in source
     assert "sys.stdin.isatty()" in source
+
+
+@pytest.mark.asyncio
+async def test_receive_data_increments_volume_on_confirmation():
+    remote = z407_app.Z407Remote.__new__(z407_app.Z407Remote)
+    remote.current_volume = 5
+    remote.current_bass = 3
+
+    async def fake_send(_cmd): pass
+    remote._send_command = fake_send
+
+    await remote._receive_data(None, bytearray(b"\xc0\x02"))  # vol up confirmed
+    assert remote.current_volume == 6
+    assert remote.current_bass == 3  # unchanged
+
+
+@pytest.mark.asyncio
+async def test_receive_data_clamps_volume_at_max():
+    remote = z407_app.Z407Remote.__new__(z407_app.Z407Remote)
+    remote.current_volume = 15
+    remote.current_bass = 0
+    async def fake_send(_cmd): pass
+    remote._send_command = fake_send
+
+    await remote._receive_data(None, bytearray(b"\xc0\x02"))
+    assert remote.current_volume == 15  # clamped
+
+
+@pytest.mark.asyncio
+async def test_receive_data_does_not_update_counter_when_none():
+    remote = z407_app.Z407Remote.__new__(z407_app.Z407Remote)
+    remote.current_volume = None
+    remote.current_bass = None
+    async def fake_send(_cmd): pass
+    remote._send_command = fake_send
+
+    await remote._receive_data(None, bytearray(b"\xc0\x02"))
+    await remote._receive_data(None, bytearray(b"\xc0\x00"))
+    assert remote.current_volume is None
+    assert remote.current_bass is None
+
+
+@pytest.mark.asyncio
+async def test_receive_data_handles_connected_signal():
+    remote = z407_app.Z407Remote.__new__(z407_app.Z407Remote)
+    remote.connected = False
+    async def fake_send(_cmd): pass
+    remote._send_command = fake_send
+
+    await remote._receive_data(None, bytearray(b"\xd4\x00\x03"))
+    assert remote.connected is True

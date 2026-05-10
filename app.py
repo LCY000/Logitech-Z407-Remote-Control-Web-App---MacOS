@@ -34,6 +34,8 @@ COMMAND_UUID = "c2e758b9-0e78-41e0-b0cb-98a593193fc5"
 RESPONSE_UUID = "b84ac9c6-29c5-46d4-bba1-9d534784330f"
 Z407_NAME_MARKERS = ("z407", "zs283")
 SCAN_TIMEOUT_SECONDS = 8.0
+VOLUME_MAX = 15   # assumed; confirmed by --boundary-test
+BASS_MAX   = 15   # confirmed by user real-world testing
 
 
 if getattr(sys, 'frozen', False):
@@ -115,7 +117,8 @@ class Z407Remote:
         self.name = getattr(device, "name", "Logitech Z407")
         self.client = BleakClient(device)
         self.connected = False
-        self.current_volume = 50 # Start estimation at 50%
+        self.current_volume: int | None = None
+        self.current_bass:   int | None = None
 
     async def connect(self):
         global connection_state, last_error
@@ -152,12 +155,22 @@ class Z407Remote:
                 raise
 
     async def _receive_data(self, sender: BleakGATTCharacteristic, data: bytearray):
-        # Handle Keep Alive or Response logic from speakers
-        # print(f"Received: {data.hex()}")
         if data == b"\xd4\x05\x01":
-            await self._send_command("8400") # KeepAlive response
-        elif data == b"\xd4\x00\x01":
+            await self._send_command("8400")
+        elif data in (b"\xd4\x00\x01", b"\xd4\x00\x03"):
             self.connected = True
+        elif data == b"\xc0\x00":  # bass up confirmed
+            if self.current_bass is not None:
+                self.current_bass = min(BASS_MAX, self.current_bass + 1)
+        elif data == b"\xc0\x01":  # bass down confirmed
+            if self.current_bass is not None:
+                self.current_bass = max(0, self.current_bass - 1)
+        elif data == b"\xc0\x02":  # volume up confirmed
+            if self.current_volume is not None:
+                self.current_volume = min(VOLUME_MAX, self.current_volume + 1)
+        elif data == b"\xc0\x03":  # volume down confirmed
+            if self.current_volume is not None:
+                self.current_volume = max(0, self.current_volume - 1)
 
     async def _send_command(self, command):
         global connection_state, last_error
@@ -179,13 +192,11 @@ class Z407Remote:
             raise
 
     # Commands
-    async def volume_up(self): 
+    async def volume_up(self):
         await self._send_command("8002")
-        self.current_volume = min(100, self.current_volume + 5)
 
-    async def volume_down(self): 
+    async def volume_down(self):
         await self._send_command("8003")
-        self.current_volume = max(0, self.current_volume - 5)
 
     async def play_pause(self): await self._send_command("8004")
     async def input_bluetooth(self): await self._send_command("8101")
