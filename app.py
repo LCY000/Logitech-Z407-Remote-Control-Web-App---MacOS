@@ -153,12 +153,6 @@ class Z407MenuBar(rumps.App):
         )
         self._config = config
         self.menu = ["Open Z407 Control", None, "Quit"]
-        # Menu bar-only app: hide from Dock and force-quit dialog
-        try:
-            from AppKit import NSApp, NSApplicationActivationPolicyAccessory
-            NSApp.setActivationPolicy_(NSApplicationActivationPolicyAccessory)
-        except Exception:
-            pass
 
     @rumps.clicked("Open Z407 Control")
     def open_web(self, _) -> None:
@@ -535,7 +529,13 @@ if __name__ == "__main__":
         server_thread = threading.Thread(target=_run_quart_server, daemon=True)
         server_thread.start()
 
-        Z407MenuBar(runtime_config).run()
+        menu_bar = Z407MenuBar(runtime_config)
+        try:
+            from AppKit import NSApp, NSApplicationActivationPolicyAccessory
+            NSApp.setActivationPolicy_(NSApplicationActivationPolicyAccessory)
+        except Exception:
+            pass
+        menu_bar.run()
 
     except KeyboardInterrupt:
         print("\nGoodbye!")
