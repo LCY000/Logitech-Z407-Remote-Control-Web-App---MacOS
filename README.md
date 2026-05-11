@@ -10,79 +10,57 @@ The app runs a local web server on your Mac and mimics the original wireless con
 
 ## Features
 
-- macOS-first defaults with `127.0.0.1:8765`, avoiding AirPlay's common port `5000`
-- Local-only mode by default, with optional LAN mode for phone control on the same Wi-Fi
-- Z407 speaker controls for mute, volume, bass, input switching, pairing, and factory reset
-- Mac media controls for play/pause, previous/next, volume, and mute
-- Real-time volume and bass tracking: step counters update on every confirmed BLE response (volume: 32 steps, bass: 15 steps), with a Calibrate button that drives both to zero so the display stays accurate across sessions
-- Persistent state: volume and bass counters survive app restarts so you only need to calibrate once
-- macOS menu bar icon — the server keeps running after you close the browser tab; reopen from the menu bar at any time
-- BLE debug scan mode for diagnosing discovery issues on macOS
-- Responsive browser UI for desktop and mobile
+- Full Z407 speaker control: mute, volume, bass, input switching (AUX / USB / Bluetooth), Bluetooth pairing, and factory reset
+- Real-time volume and bass display: step counters sync on every confirmed BLE response (volume: 32 steps, bass: 15 steps) — use Calibrate to zero both and keep the display accurate
+- Persistent state: volume and bass levels survive app restarts — calibrate once and it stays correct
+- macOS menu bar icon: close the browser tab and the server keeps running quietly in the background; reopen the UI from the menu bar any time
+- Control from your phone: enable LAN mode to open the same web UI from a phone on the same Wi-Fi
+- Mac media controls: play/pause, previous/next, volume, and mute all from the same web interface
+- Runs entirely on your Mac — no internet access required, no data leaves your machine
+- Responsive UI that works on both desktop and phone browsers
 
-## Recommended Setup
+## Screenshots
 
-1. Connect your Mac to the Z407 using a 3.5mm AUX cable.
-2. Run the app on your Mac.
-3. Use the browser UI to control the speaker or switch input sources.
-
-Based on local testing, AUX usually sounds better than Bluetooth. Bluetooth may distort at higher volume. USB audio has not been tested yet.
+![Z407 Control Web UI](assets/photo_1.png)
 
 ## Quick Start
 
-Run from Terminal:
+### Mac App
+
+Download `Logitech Z407 Remote Control.app` from the [Releases page](../../releases), unzip, and open it. You can drag it to your **Applications** folder for easy access.
+
+macOS may show a security prompt on first launch — right-click the app and choose **Open**.
+
+The app places an icon in the macOS menu bar. Click it to reopen the browser UI or quit the app.
+
+### Terminal
 
 ```bash
 chmod +x run_macos.sh
 ./run_macos.sh
 ```
 
-Or double-click:
+Then open `http://127.0.0.1:8765` in your browser. `run_macos.sh` creates a virtual environment if needed, installs dependencies, and starts the server.
 
-```text
-Launch Logitech Z407 Web Control.command
-```
-
-Then open:
-
-```text
-http://127.0.0.1:8765
-```
-
-`run_macos.sh` creates a local virtual environment if needed, installs runtime dependencies, starts the server, and opens your browser.
-
-## Mac App
-
-Download the latest release from the [GitHub Releases page](../../releases), unzip, and double-click `Logitech Z407 Remote Control.app`. No Python or Terminal needed.
-
-You can drag the app to your **Applications** folder so it is easy to find and launch like any other Mac app.
-
-macOS will show a security prompt the first time. To open it:
-
-1. Right-click (or Control-click) the app → **Open**
-2. Click **Open** again in the dialog
-
-The app places an icon in the macOS menu bar. Click it to reopen the browser UI or quit the app.
-
-To build the app yourself from source:
+### Build from Source
 
 ```bash
 ./build_macos_app.sh
 ```
 
-The packaged app will be created at:
+The packaged app will be at `release/Logitech Z407 Remote Control.app`.
 
-```text
-release/Logitech Z407 Remote Control.app
-```
+## Recommended Setup
+
+Connect your Mac to the Z407 using a 3.5mm AUX cable. AUX usually sounds better than Bluetooth and avoids distortion at higher volumes.
 
 ## Safer Exit
 
-Use the web UI's `Quit` button or press `Ctrl+C` in the terminal.
+Click **Quit** in the web UI, or click the menu bar icon and choose **Quit**. Either method closes the app cleanly.
 
-If the web UI cannot find or reconnect to the Z407 after restarting the app, try unplugging the speaker power, wait a few seconds, and plug it back in. This can clear stale Bluetooth state on the speaker side.
+If running from Terminal, press `Ctrl+C`. Avoid `Ctrl+Z` — it suspends the process instead of closing it.
 
-Avoid `Ctrl+Z` in Terminal. It suspends the app instead of closing it. If you accidentally press it and see a suspended job, close that terminal job before starting the app again.
+If the app cannot reconnect to the Z407 after a restart, try unplugging the speaker power for a few seconds. This clears stale Bluetooth state on the speaker side.
 
 ## Phone Control
 
@@ -99,6 +77,8 @@ http://192.168.1.35:8765
 ```
 
 Open that address from a phone on the same Wi-Fi network.
+
+> **Note:** LAN mode has not been personally tested in all environments. It may require adjusting your Mac's firewall settings to allow incoming connections on port 8765.
 
 ## macOS Permissions
 
@@ -182,11 +162,8 @@ This is an **unofficial** project and is not affiliated with, endorsed by, or co
 
 ## Donations & Support
 
-This project is based on free community work. Please keep supporting and crediting the original author and reverse engineering work.
-
 This project is 100% free. Using it, sharing it, and keeping attribution intact already helps.
 
-If you want to give additional support, any donation helps the original author dedicate more time and resources to this project and other community work. Thanks to everyone who has already supported the project.
+If you find it useful, consider supporting **LCY000** (the macOS maintainer) — any support helps dedicate more time to this project and future improvements.
 
-Original author support page:
-https://androrama.com
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/cyouuu)

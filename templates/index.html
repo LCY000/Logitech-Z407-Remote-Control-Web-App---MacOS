@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Logitech Z407 Web Control</title>
     <meta name="theme-color" content="#101820">
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
     <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
     <link rel="icon" type="image/png" sizes="192x192" href="/static/icon_192.png">
     <link rel="apple-touch-icon" href="/static/icon_192.png">
@@ -209,7 +210,7 @@
         }
 
         .meter {
-            height: 12px;
+            height: 18px;
             border-radius: 999px;
             background: rgba(255, 255, 255, 0.12);
             overflow: hidden;
@@ -280,23 +281,26 @@
 
         .meter-row {
             display: grid;
-            grid-template-columns: 5rem 1fr 3.5rem;
+            grid-template-columns: 5rem 1fr 4rem;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+            margin-bottom: 4px;
         }
 
         .meter-label {
-            font-size: 0.74rem;
+            font-size: 0.80rem;
             letter-spacing: 0.14em;
             text-transform: uppercase;
             color: var(--muted);
+            font-weight: 600;
         }
 
         .meter-value {
-            font-size: 0.88rem;
+            font-size: 1.05rem;
             color: var(--text);
             text-align: right;
             font-variant-numeric: tabular-nums;
+            font-weight: 600;
         }
 
         .notice-banner {
@@ -399,14 +403,12 @@
                     <span class="meter-value" id="bassText">&#8212; / 15</span>
                 </div>
 
-                <button id="calibrateBtn" onclick="calibrate()" style="margin-top:6px;">
+                <button id="calibrateBtn" onclick="calibrate()" style="margin-top:10px;">
                     Calibrate
                     <span class="btn-label">Sends vol &amp; bass to minimum, then tracks from 0</span>
                 </button>
 
-                <p class="status-line" id="calibrateStatus">
-                    Position is estimated. Tap Calibrate to set both to 0 and start tracking from there.
-                </p>
+                <p class="status-line" id="calibrateStatus"></p>
             </div>
         </section>
 
@@ -462,11 +464,13 @@
                 <h2>Advanced</h2>
                 <div class="advanced">
                     <div class="advanced-pair-row">
-                        <button onclick="confirmAction('bluetooth_pair', 'Activate Bluetooth pairing mode?')">藍牙配對</button>
+                        <button onclick="confirmAction('bluetooth_pair', 'Activate Bluetooth pairing mode?')">Bluetooth Pair</button>
                         <button class="danger" onclick="confirmAction('factory_reset', 'Factory reset the Z407? This can erase paired devices.')">Reset</button>
                     </div>
-                    <button onclick="window.location.reload()">Refresh</button>
-                    <button class="danger" onclick="shutdownApp()">Quit</button>
+                    <div class="advanced-pair-row">
+                        <button onclick="window.location.reload()">Refresh</button>
+                        <button class="danger" onclick="shutdownApp()">Quit</button>
+                    </div>
                 </div>
             </div>
 
