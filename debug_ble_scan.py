@@ -10,45 +10,35 @@ from bleak.exc import BleakBluetoothNotAvailableError, BleakError
 from bleak.backends.characteristic import BleakGATTCharacteristic
 
 
-SERVICE_UUID = "0000fdc2-0000-1000-8000-00805f9b34fb"
-COMMAND_UUID = "c2e758b9-0e78-41e0-b0cb-98a593193fc5"
-RESPONSE_UUID = "b84ac9c6-29c5-46d4-bba1-9d534784330f"
-Z407_NAME_MARKERS = ("z407", "zs283")
+from z407_ble import COMMAND_UUID, RESPONSE_UUID, SERVICE_UUID, is_z407_device
 
 
-def is_z407_like(device) -> bool:
-    name = (getattr(device, "name", "") or "").casefold()
-    if any(marker in name for marker in Z407_NAME_MARKERS):
-        return True
-
-    metadata = getattr(device, "metadata", {}) or {}
-    uuids = metadata.get("uuids", []) or metadata.get("service_uuids", [])
-    return any(str(uuid).casefold() == SERVICE_UUID for uuid in uuids)
-
-
-def describe_device(device) -> str:
-    name = getattr(device, "name", None) or "(no name)"
+def describe(device, advertisement) -> str:
+    name = getattr(device, "name", None) or getattr(advertisement, "local_name", None) or "(no name)"
     address = getattr(device, "address", "unknown")
-    rssi = getattr(device, "rssi", None)
-    metadata = getattr(device, "metadata", {}) or {}
-    marker = " <== Z407 candidate" if is_z407_like(device) else ""
-    return f"- name={name!r} address={address!r} rssi={rssi!r} metadata={metadata!r}{marker}"
+    rssi = getattr(advertisement, "rssi", None)
+    services = list(getattr(advertisement, "service_uuids", None) or [])
+    marker = " <== Z407 candidate" if is_z407_device(device, advertisement) else ""
+    return f"- name={name!r} address={address!r} rssi={rssi!r} services={services!r}{marker}"
 
 
 async def scan_once(duration: float) -> tuple[list, list]:
+    """Returns (filtered, unfiltered) lists of (device, advertisement) pairs."""
     try:
         print(f"Scanning BLE devices for {duration:g}s...")
         print("First pass: Z407 service UUID filter")
-        filtered = await BleakScanner.discover(timeout=duration, service_uuids=[SERVICE_UUID])
+        found = await BleakScanner.discover(timeout=duration, service_uuids=[SERVICE_UUID], return_adv=True)
+        filtered = list(found.values())
         print(f"Filtered devices: {len(filtered)}")
-        for device in filtered:
-            print(describe_device(device))
+        for device, advertisement in filtered:
+            print(describe(device, advertisement))
 
         print("\nSecond pass: unfiltered scan")
-        devices = await BleakScanner.discover(timeout=duration)
+        found = await BleakScanner.discover(timeout=duration, return_adv=True)
+        devices = list(found.values())
         print(f"All devices: {len(devices)}")
-        for device in devices:
-            print(describe_device(device))
+        for device, advertisement in devices:
+            print(describe(device, advertisement))
     except BleakBluetoothNotAvailableError as exc:
         print(f"Bluetooth unavailable to Python/CoreBluetooth: {exc}")
         print("Check macOS Bluetooth is on and Terminal/Python has Bluetooth permission.")
@@ -80,12 +70,16 @@ async def scan(duration: float, rounds: int, pause: float) -> int:
         if round_number < rounds:
             await asyncio.sleep(pause)
 
-    candidates = [device for device in [*all_filtered, *all_devices] if is_z407_like(device)]
+    # Anything the service-UUID filter returned is a candidate even without a name.
+    candidates = {device.address: (device, adv) for device, adv in all_filtered}
+    candidates.update(
+        {device.address: (device, adv) for device, adv in all_devices if is_z407_device(device, adv)}
+    )
     print(f"\nZ407 candidates: {len(candidates)}")
-    for device in candidates:
-        print(describe_device(device))
+    for device, advertisement in candidates.values():
+        print(describe(device, advertisement))
 
-    seen_addresses = Counter(getattr(device, "address", "unknown") for device in [*all_filtered, *all_devices])
+    seen_addresses = Counter(device.address for device, _adv in [*all_filtered, *all_devices])
     repeated = [address for address, count in seen_addresses.items() if count > 1]
     if repeated:
         print("\nRepeated BLE addresses across passes:")
@@ -104,10 +98,7 @@ async def boundary_test(duration: float) -> int:
     """
     print(f"Scanning for Z407 ({duration:g}s)...")
     try:
-        devices = await BleakScanner.discover(timeout=duration, service_uuids=[SERVICE_UUID])
-        if not devices:
-            devices = await BleakScanner.discover(timeout=duration)
-        candidates = [d for d in devices if is_z407_like(d)]
+        device = await BleakScanner.find_device_by_filter(is_z407_device, timeout=duration)
     except BleakBluetoothNotAvailableError as exc:
         print(f"Bluetooth unavailable: {exc}")
         print("Check macOS Bluetooth is on and Terminal/Python has Bluetooth permission.")
@@ -116,11 +107,10 @@ async def boundary_test(duration: float) -> int:
         print(f"Scan failed: {exc}")
         return 4
 
-    if not candidates:
+    if device is None:
         print("No Z407 found. Make sure the speaker is on and not connected to another device.")
         return 2
 
-    device = candidates[0]
     print(f"Found: {device.name!r} ({device.address})")
 
     received: list[tuple[int, bytes]] = []   # (step, raw_bytes)

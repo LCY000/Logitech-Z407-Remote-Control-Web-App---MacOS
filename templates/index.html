@@ -1,686 +1,229 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ language }}" data-saved-lang="{{ language }}">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Logitech Z407 Web Control</title>
-    <meta name="theme-color" content="#101820">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Z407 Control</title>
+    <meta name="color-scheme" content="light dark">
+    <meta name="theme-color" content="#e7e9ee" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#14161a" media="(prefers-color-scheme: dark)">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Z407">
+    <link rel="manifest" href="/static/manifest.webmanifest">
     <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
     <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
-    <link rel="icon" type="image/png" sizes="192x192" href="/static/icon_192.png">
     <link rel="apple-touch-icon" href="/static/icon_192.png">
-    <style>
-        :root {
-            --bg: #101820;
-            --bg-soft: #17242f;
-            --panel: rgba(255, 255, 255, 0.08);
-            --panel-strong: rgba(255, 255, 255, 0.13);
-            --text: #f4efe6;
-            --muted: #aeb8bd;
-            --line: rgba(255, 255, 255, 0.15);
-            --accent: #f2b84b;
-            --accent-ink: #241604;
-            --good: #72d391;
-            --bad: #ff7b7b;
-            --warn: #f2b84b;
-            --shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
-        }
-
-        * { box-sizing: border-box; }
-
-        body {
-            min-height: 100vh;
-            margin: 0;
-            font-family: Avenir Next, Futura, Trebuchet MS, sans-serif;
-            color: var(--text);
-            background:
-                radial-gradient(circle at 12% 12%, rgba(242, 184, 75, 0.18), transparent 30%),
-                radial-gradient(circle at 80% 0%, rgba(94, 151, 246, 0.16), transparent 34%),
-                linear-gradient(145deg, #0c1218 0%, var(--bg) 48%, #1c2b32 100%);
-            padding: 28px;
-        }
-
-        .shell {
-            width: min(1080px, 100%);
-            margin: 0 auto;
-        }
-
-        .hero {
-            display: grid;
-            grid-template-columns: 1.2fr 0.8fr;
-            gap: 18px;
-            align-items: stretch;
-            margin-bottom: 18px;
-        }
-
-        .card {
-            background: var(--panel);
-            border: 1px solid var(--line);
-            border-radius: 28px;
-            box-shadow: var(--shadow);
-            -webkit-backdrop-filter: blur(18px);
-            backdrop-filter: blur(18px);
-            padding: 22px;
-        }
-
-        h1, h2, p { margin: 0; }
-
-        h1 {
-            font-size: clamp(2.2rem, 7vw, 5rem);
-            line-height: 0.95;
-            letter-spacing: -0.08em;
-        }
-
-        h2 {
-            color: var(--muted);
-            font-size: 0.76rem;
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
-            margin-bottom: 14px;
-        }
-
-        .subtitle {
-            color: var(--muted);
-            max-width: 620px;
-            margin-top: 18px;
-            font-size: 1.02rem;
-            line-height: 1.6;
-        }
-
-        .pill-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .pill {
-            border: 1px solid var(--line);
-            border-radius: 999px;
-            color: var(--muted);
-            padding: 8px 12px;
-            font-size: 0.84rem;
-            background: rgba(0, 0, 0, 0.16);
-        }
-
-        .pill.good { color: var(--good); }
-        .pill.bad { color: var(--bad); }
-        .pill.warn { color: var(--warn); }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(12, 1fr);
-            gap: 18px;
-        }
-
-        .span-7 { grid-column: span 7; }
-        .span-5 { grid-column: span 5; }
-        .span-12 { grid-column: span 12; }
-        .speaker-card { border-color: rgba(242, 184, 75, 0.42); }
-
-        .control-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-        }
-
-        button {
-            border: 0;
-            border-radius: 18px;
-            cursor: pointer;
-            font: inherit;
-            color: var(--text);
-            background: var(--panel-strong);
-            min-height: 58px;
-            transition: transform 140ms ease, background 140ms ease, box-shadow 140ms ease;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        button:active {
-            transform: translateY(2px) scale(0.98);
-        }
-
-        button:focus-visible {
-            outline: 3px solid var(--accent);
-            outline-offset: 3px;
-        }
-
-        button:disabled {
-            cursor: not-allowed;
-            color: rgba(244, 239, 230, 0.42);
-            background: rgba(255, 255, 255, 0.05);
-            transform: none;
-        }
-
-        .primary {
-            min-height: 112px;
-            background: var(--accent);
-            color: var(--accent-ink);
-            font-size: 1.3rem;
-            font-weight: 800;
-        }
-
-        .wide { grid-column: span 2; }
-
-        .btn-label {
-            display: block;
-            font-size: 0.76rem;
-            color: var(--muted);
-            margin-top: 5px;
-        }
-
-        .primary .btn-label {
-            color: rgba(36, 22, 4, 0.72);
-        }
-
-        .control-stack {
-            display: grid;
-            gap: 14px;
-        }
-
-        .control-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-
-        .control-row button {
-            min-height: 72px;
-        }
-
-        .control-row .row-label {
-            grid-column: 1 / -1;
-            color: var(--muted);
-            font-size: 0.74rem;
-            letter-spacing: 0.14em;
-            text-transform: uppercase;
-        }
-
-        .speaker-note {
-            border-top: 1px solid var(--line);
-            color: var(--muted);
-            line-height: 1.55;
-            margin-top: 18px;
-            padding-top: 16px;
-        }
-
-        .slider-card {
-            display: grid;
-            gap: 12px;
-        }
-
-        .meter {
-            height: 18px;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.12);
-            overflow: hidden;
-        }
-
-        .meter-fill {
-            width: 50%;
-            height: 100%;
-            border-radius: inherit;
-            background: linear-gradient(90deg, #f2b84b, #ffe2a4);
-            transition: width 220ms ease;
-        }
-
-        .segmented {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-        }
-
-        .segmented button.recommended {
-            outline: 2px solid var(--accent);
-            color: var(--accent);
-        }
-
-        .advanced {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .advanced-pair-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-
-        .danger {
-            color: #ffd2d2;
-            background: rgba(255, 77, 77, 0.16);
-        }
-
-        .status-line {
-            min-height: 24px;
-            color: var(--muted);
-            margin-top: 14px;
-            line-height: 1.5;
-        }
-
-        .quiet-card {
-            box-shadow: none;
-        }
-
-        .unsupported-note {
-            display: none;
-            color: var(--warn);
-        }
-
-        .unsupported-note.visible {
-            display: block;
-        }
-
-        .help-list {
-            display: grid;
-            gap: 10px;
-            color: var(--muted);
-            line-height: 1.5;
-            padding-left: 18px;
-        }
-
-        .meter-row {
-            display: grid;
-            grid-template-columns: 5rem 1fr 4rem;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 4px;
-        }
-
-        .meter-label {
-            font-size: 0.80rem;
-            letter-spacing: 0.14em;
-            text-transform: uppercase;
-            color: var(--muted);
-            font-weight: 600;
-        }
-
-        .meter-value {
-            font-size: 1.05rem;
-            color: var(--text);
-            text-align: right;
-            font-variant-numeric: tabular-nums;
-            font-weight: 600;
-        }
-
-        .notice-banner {
-            display: flex;
-            align-items: flex-start;
-            gap: 14px;
-            background: rgba(242, 184, 75, 0.08);
-            border: 1px solid rgba(242, 184, 75, 0.30);
-            border-radius: 18px;
-            padding: 14px 18px;
-        }
-
-        .notice-banner-icon {
-            font-size: 1.2rem;
-            flex-shrink: 0;
-            margin-top: 1px;
-        }
-
-        .notice-title {
-            font-size: 0.86rem;
-            font-weight: 700;
-            color: var(--accent);
-            margin-bottom: 4px;
-        }
-
-        .notice-body {
-            font-size: 0.8rem;
-            color: var(--muted);
-            line-height: 1.5;
-        }
-
-        .notes-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 14px;
-        }
-
-        .notes-card {
-            background: rgba(255, 255, 255, 0.04);
-            border-radius: 14px;
-            padding: 14px 16px;
-        }
-
-        .notes-card h3 {
-            font-size: 0.72rem;
-            letter-spacing: 0.16em;
-            text-transform: uppercase;
-            color: var(--muted);
-            margin-bottom: 10px;
-            margin-top: 0;
-        }
-
-        .notes-card ul {
-            margin: 0;
-            padding-left: 16px;
-            color: var(--muted);
-            font-size: 0.82rem;
-            line-height: 1.75;
-        }
-
-        @media (max-width: 820px) {
-            .notes-grid { grid-template-columns: 1fr; }
-            .meter-row { grid-template-columns: 4rem 1fr 3rem; }
-        }
-
-        @media (max-width: 820px) {
-            body { padding: 16px; }
-            .hero, .grid { grid-template-columns: 1fr; }
-            .span-7, .span-5, .span-12 { grid-column: span 1; }
-            .control-grid { grid-template-columns: 1fr; }
-            .wide { grid-column: span 1; }
-        }
-    </style>
+    <link rel="stylesheet" href="/static/app.css">
 </head>
 <body>
-    <main class="shell">
-        <section class="hero">
-            <div class="card">
-                <h1>Z407 Control</h1>
-                <p class="subtitle" id="setupHint">Choose the Z407 input below. AUX is recommended when your Mac is connected by cable.</p>
-                <div class="pill-row">
-                    <span class="pill bad" id="connectionStatus">Disconnected</span>
-                    <span class="pill" id="networkMode">Local</span>
-                    <span class="pill warn" id="preferredInput">AUX recommended</span>
+    <header class="topbar">
+        <h1>Z407 Control</h1>
+        <div class="topbar-status">
+            <span class="pill" id="demoBadge" data-i18n="state.demo" hidden>Demo mode</span>
+            <span class="pill" id="connection" data-state="searching" role="status" aria-live="polite">
+                <span class="dot" aria-hidden="true"></span><span id="connectionText">Searching for speaker…</span>
+            </span>
+            <button class="lang" id="langToggle" type="button">中文</button>
+        </div>
+    </header>
+
+    <p class="hint" id="hint" hidden></p>
+
+    <section class="first-run" id="firstRun" aria-labelledby="firstRunTitle" hidden>
+        <div>
+            <h2 id="firstRunTitle" data-i18n="firstRun.title">First time here? Calibrate once.</h2>
+            <p data-i18n="firstRun.body">The speaker can't report its volume, so the app counts steps from zero. Play some audio, then calibrate. It takes about 10 seconds and you only do it once.</p>
+        </div>
+        <div class="first-run-actions">
+            <button type="button" id="firstRunLater" data-i18n="firstRun.later">Not now</button>
+            <button type="button" class="primary" id="firstRunCalibrate" data-i18n="confirm.calibrate.ok">Calibrate</button>
+        </div>
+    </section>
+
+    <main class="layout" id="app">
+        <section class="stage" aria-labelledby="volumeTitle">
+            <h2 class="sr-only" id="volumeTitle" data-i18n="volume.title">Volume</h2>
+
+            <div class="dial" id="dial" role="slider" tabindex="0"
+                 aria-valuemin="0" aria-valuemax="32" aria-valuenow="0"
+                 data-i18n-aria="volume.dial" aria-label="Speaker volume">
+                <svg viewBox="0 0 320 320" aria-hidden="true">
+                    <g id="dialTicks"></g>
+                    <circle class="knob" cx="160" cy="160" r="104"></circle>
+                    <circle class="knob-pointer" id="dialPointer" cx="160" cy="160" r="5"></circle>
+                </svg>
+                <div class="dial-readout" aria-hidden="true">
+                    <span class="dial-value" id="volumeValue">—</span>
+                    <span class="dial-caption" id="volumeCaption">not calibrated</span>
                 </div>
-                <p class="status-line" id="statusText" role="status" aria-live="polite">Starting speaker scan...</p>
             </div>
-            <div class="card slider-card">
-                <h2>Volume &amp; Bass</h2>
 
-                <div class="meter-row">
-                    <span class="meter-label">Volume</span>
-                    <div class="meter"><div class="meter-fill" id="volBar"></div></div>
-                    <span class="meter-value" id="volText">&#8212; / 32</span>
-                </div>
+            <p class="stage-note" id="stageNote">Calibrate once to see the level and drag the ring.</p>
 
-                <div class="meter-row">
-                    <span class="meter-label">Bass</span>
-                    <div class="meter"><div class="meter-fill" id="bassBar" style="background: linear-gradient(90deg, #5e97f6, #a8d8ff);"></div></div>
-                    <span class="meter-value" id="bassText">&#8212; / 15</span>
-                </div>
-
-                <button id="calibrateBtn" onclick="calibrate()" style="margin-top:10px;">
-                    Calibrate
-                    <span class="btn-label">Sends vol &amp; bass to minimum, then tracks from 0</span>
+            <div class="stage-row">
+                <button type="button" class="round" data-repeat="vol_down" data-needs-speaker
+                        data-i18n-aria="volume.down" aria-label="Volume down">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg>
                 </button>
-
-                <p class="status-line" id="calibrateStatus"></p>
+                <button type="button" class="mute" data-command="play_pause" data-needs-speaker>
+                    <span data-i18n="speaker.mute">Mute / unmute</span>
+                </button>
+                <button type="button" class="round" data-repeat="vol_up" data-needs-speaker
+                        data-i18n-aria="volume.up" aria-label="Volume up">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"/></svg>
+                </button>
             </div>
+
+            <div class="stage-row tracks">
+                <button type="button" data-command="prev_speaker" data-needs-speaker>
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 6v12M18 6l-8 6 8 6z"/></svg>
+                    <span data-i18n="speaker.prev">Previous</span>
+                </button>
+                <button type="button" data-command="next_speaker" data-needs-speaker>
+                    <span data-i18n="speaker.next">Next</span>
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 6v12M6 6l8 6-8 6z"/></svg>
+                </button>
+            </div>
+            <p class="stage-note quiet" data-i18n="speaker.trackNote">Track buttons work on Bluetooth and USB input.</p>
         </section>
 
-        <section class="grid">
-            <div class="card span-7 speaker-card">
-                <h2>Speaker Remote</h2>
-                <div class="control-stack">
-                    <button onclick="sendCommand('play_pause')" class="primary">Mute / Unmute<span class="btn-label">Z407 speaker command</span></button>
-                    <div class="control-row speaker-skip-row">
-                        <span class="row-label">Track controls</span>
-                        <button onclick="sendCommand('prev_speaker')">Previous<span class="btn-label">Bluetooth / USB only</span></button>
-                        <button onclick="sendCommand('next_speaker')">Next<span class="btn-label">Bluetooth / USB only</span></button>
-                    </div>
-                    <div class="control-row">
-                        <span class="row-label">Speaker volume</span>
-                        <button onclick="sendCommand('vol_down')">Volume -<span class="btn-label">Z407 speaker</span></button>
-                        <button onclick="sendCommand('vol_up')">Volume +<span class="btn-label">Z407 speaker</span></button>
-                    </div>
-                    <div class="control-row">
-                        <span class="row-label">Subwoofer bass</span>
-                        <button onclick="sendCommand('bass_down')">Bass -<span class="btn-label">Z407 subwoofer</span></button>
-                        <button onclick="sendCommand('bass_up')">Bass +<span class="btn-label">Z407 subwoofer</span></button>
-                    </div>
+        <div class="panels">
+            <section class="panel" aria-labelledby="bassTitle">
+                <div class="panel-head">
+                    <h2 id="bassTitle" data-i18n="bass.title">Bass</h2>
+                    <span class="panel-value" id="bassValue">— / 15</span>
                 </div>
-                <p class="speaker-note">This section controls the Z407 speaker itself: speaker mute, speaker volume, and subwoofer bass. It is separate from your Mac system volume.</p>
-            </div>
+                <div class="bass-row">
+                    <button type="button" class="round small" data-repeat="bass_down" data-needs-speaker
+                            data-i18n-aria="bass.down" aria-label="Bass down">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg>
+                    </button>
+                    <div class="segments" id="bassSegments"></div>
+                    <button type="button" class="round small" data-repeat="bass_up" data-needs-speaker
+                            data-i18n-aria="bass.up" aria-label="Bass up">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"/></svg>
+                    </button>
+                </div>
+            </section>
 
-            <div class="card span-5">
-                <h2>Input Source</h2>
-                <div class="segmented">
-                    <button id="inputAux" onclick="sendCommand('input_aux')">AUX</button>
-                    <button id="inputUsb" onclick="sendCommand('input_usb')">USB</button>
-                    <button id="inputBluetooth" onclick="sendCommand('input_bluetooth')">Bluetooth</button>
+            <section class="panel" aria-labelledby="inputTitle">
+                <div class="panel-head">
+                    <h2 id="inputTitle" data-i18n="input.title">Input</h2>
                 </div>
-                <p class="status-line">Use these buttons to choose which Z407 input is active. AUX is recommended for a Mac connected by cable, but the web app can switch all three inputs.</p>
-            </div>
+                <div class="choice" role="group" aria-labelledby="inputTitle">
+                    <button type="button" data-input="aux" data-needs-speaker aria-pressed="false" data-i18n="input.aux">AUX</button>
+                    <button type="button" data-input="usb" data-needs-speaker aria-pressed="false" data-i18n="input.usb">USB</button>
+                    <button type="button" data-input="bluetooth" data-needs-speaker aria-pressed="false" data-i18n="input.bluetooth">Bluetooth</button>
+                </div>
+                <p class="note" id="inputNote"></p>
+            </section>
 
-            <div class="card span-7 quiet-card" id="hostMediaCard">
-                <h2 id="hostMediaTitle">Mac Media Controls</h2>
-                <div class="control-grid">
-                    <button data-host-media onclick="sendCommand('prev')">Previous<span class="btn-label">Mac</span></button>
-                    <button data-host-media onclick="sendCommand('play_pause_pc')">Play / Pause<span class="btn-label">Mac</span></button>
-                    <button data-host-media onclick="sendCommand('next')">Next<span class="btn-label">Mac</span></button>
-                    <button data-host-media onclick="sendCommand('vol_down_pc')">Mac Vol -</button>
-                    <button data-host-media onclick="sendCommand('mute_pc')">Mute</button>
-                    <button data-host-media onclick="sendCommand('vol_up_pc')">Mac Vol +</button>
+            <section class="panel" aria-labelledby="macTitle">
+                <div class="panel-head">
+                    <h2 id="macTitle" data-i18n="mac.title">Mac media keys</h2>
                 </div>
-                <p class="status-line">These are normal computer media controls. You can also use your keyboard, menu bar, or macOS Control Center instead. macOS may ask for Accessibility permission when these buttons are used.</p>
-                <p class="status-line unsupported-note" id="hostMediaUnsupported">Host media keys are not supported on this platform.</p>
-            </div>
+                <div class="keys">
+                    <button type="button" data-command="prev" data-host-media data-i18n-aria="mac.prev" aria-label="Previous">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 6v12M18 6l-8 6 8 6z"/></svg>
+                    </button>
+                    <button type="button" data-command="play_pause_pc" data-host-media data-i18n-aria="mac.playPause" aria-label="Play / pause">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l8 7-8 7zM17 6v12M21 6v12"/></svg>
+                    </button>
+                    <button type="button" data-command="next" data-host-media data-i18n-aria="mac.next" aria-label="Next">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 6v12M6 6l8 6-8 6z"/></svg>
+                    </button>
+                    <button type="button" data-repeat="vol_down_pc" data-host-media data-i18n-aria="mac.volDown" aria-label="Mac volume down">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4zM17 12h4"/></svg>
+                    </button>
+                    <button type="button" data-command="mute_pc" data-host-media data-i18n-aria="mac.mute" aria-label="Mac mute">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4zM17 9.5l4 5M21 9.5l-4 5"/></svg>
+                    </button>
+                    <button type="button" data-repeat="vol_up_pc" data-host-media data-i18n-aria="mac.volUp" aria-label="Mac volume up">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4zM17 12h4M19 10v4"/></svg>
+                    </button>
+                </div>
+                <p class="note" data-i18n="mac.note">These press the Mac's own media keys. They are separate from the speaker volume above.</p>
+            </section>
 
-            <div class="card span-5">
-                <h2>Advanced</h2>
-                <div class="advanced">
-                    <div class="advanced-pair-row">
-                        <button onclick="confirmAction('bluetooth_pair', 'Activate Bluetooth pairing mode?')">Bluetooth Pair</button>
-                        <button class="danger" onclick="confirmAction('factory_reset', 'Factory reset the Z407? This can erase paired devices.')">Reset</button>
-                    </div>
-                    <div class="advanced-pair-row">
-                        <button onclick="window.location.reload()">Refresh</button>
-                        <button class="danger" onclick="shutdownApp()">Quit</button>
-                    </div>
+            <section class="panel" id="phonePanel" aria-labelledby="phoneTitle" hidden>
+                <div class="panel-head">
+                    <h2 id="phoneTitle" data-i18n="phone.title">Use it from your phone</h2>
                 </div>
-            </div>
+                <p class="note" data-i18n="phone.note">On the same Wi-Fi, open:</p>
+                <div class="address">
+                    <code id="lanUrl"></code>
+                    <button type="button" id="copyUrl" data-i18n="phone.copy">Copy</button>
+                </div>
+            </section>
 
-            <div class="card span-12">
-                <div class="notice-banner" style="margin-bottom: 18px;">
-                    <span class="notice-banner-icon">&#9635;</span>
-                    <div>
-                        <p class="notice-title">Closing this tab won't quit the app</p>
-                        <p class="notice-body">Z407 Control keeps running in the menu bar. Click the icon to reopen or quit.</p>
-                    </div>
+            <section class="panel" aria-labelledby="setupTitle">
+                <div class="panel-head">
+                    <h2 id="setupTitle" data-i18n="setup.title">Speaker setup</h2>
                 </div>
+                <ul class="actions">
+                    <li>
+                        <div>
+                            <strong data-i18n="setup.calibrate">Calibrate levels</strong>
+                            <span data-i18n="setup.calibrateNote">Turns volume and bass all the way down so the app can count from zero.</span>
+                        </div>
+                        <button type="button" id="calibrateBtn" data-needs-speaker data-i18n="confirm.calibrate.ok">Calibrate</button>
+                    </li>
+                    <li>
+                        <div>
+                            <strong data-i18n="setup.pair">Bluetooth pairing</strong>
+                            <span data-i18n="setup.pairNote">Makes the speaker visible to a new phone or computer.</span>
+                        </div>
+                        <button type="button" id="pairBtn" data-needs-speaker data-i18n="confirm.pair.ok">Start pairing</button>
+                    </li>
+                    <li data-local-only>
+                        <div>
+                            <strong data-i18n="setup.reset">Factory reset</strong>
+                            <span data-i18n="setup.resetNote">Erases the speaker's paired devices.</span>
+                        </div>
+                        <button type="button" class="danger" id="resetBtn" data-needs-speaker data-i18n="confirm.reset.ok">Factory reset</button>
+                    </li>
+                    <li data-local-only>
+                        <div>
+                            <strong data-i18n="setup.quit">Quit app</strong>
+                            <span data-i18n="setup.quitNote">Stops Z407 Control on this Mac.</span>
+                        </div>
+                        <button type="button" class="danger" id="quitBtn" data-i18n="confirm.quit.ok">Quit app</button>
+                    </li>
+                </ul>
+                <p class="note" id="localOnlyNote" data-i18n="setup.localOnly" hidden>Factory reset and quit are only available on the Mac running the app.</p>
+            </section>
 
-                <div class="notes-grid">
-                    <div class="notes-card">
-                        <h3>Audio Tips</h3>
-                        <ul>
-                            <li>Volume and bass controls only respond when audio is actively playing — the speaker ignores them when idle</li>
-                            <li>Both the Mac system volume and the speaker's hardware volume affect loudness independently — if sound is too quiet, check both</li>
-                            <li>AUX usually sounds better than Bluetooth</li>
-                            <li>Bluetooth may distort at high volume</li>
-                        </ul>
-                    </div>
-                    <div class="notes-card" id="troubleshootingCard">
-                        <h3>Permissions &amp; Troubleshooting</h3>
-                        <ul id="helpList">
-                            <li>Bluetooth: macOS may ask for permission</li>
-                            <li>Mac media keys require Accessibility access</li>
-                            <li>If the status bar shows "Scanning&#8230;" for a long time, unplug and replug the speaker's power cable to reset its state</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </section>
+            <details class="panel tips">
+                <summary data-i18n="tips.title">Good to know</summary>
+                <ul>
+                    <li data-i18n="tips.playing">The speaker only accepts volume and bass changes while audio is playing.</li>
+                    <li data-i18n="tips.twoVolumes">Loudness depends on both the Mac volume and the speaker volume. If it's too quiet, check both.</li>
+                    <li data-i18n="tips.aux">AUX usually sounds better than Bluetooth, which can distort at high volume.</li>
+                    <li data-i18n="tips.menuBar">Closing this tab doesn't quit the app. It keeps running in the menu bar, where you can reopen or quit it.</li>
+                    <li data-i18n="tips.accessibility">Mac media keys need Accessibility permission under System Settings > Privacy &amp; Security.</li>
+                    <li data-i18n="tips.keys">Keyboard: ↑ ↓ volume, ← → bass, M mute.</li>
+                </ul>
+            </details>
+        </div>
     </main>
 
-    <script>
-        const statusText = document.getElementById('statusText');
-        const connectionStatus = document.getElementById('connectionStatus');
-        const networkMode = document.getElementById('networkMode');
-        const preferredInput = document.getElementById('preferredInput');
-        const setupHint = document.getElementById('setupHint');
-        const hostMediaCard = document.getElementById('hostMediaCard');
-        const hostMediaTitle = document.getElementById('hostMediaTitle');
-        const hostMediaUnsupported = document.getElementById('hostMediaUnsupported');
-        const hostMediaButtons = document.querySelectorAll('[data-host-media]');
-        const volBar = document.getElementById('volBar');
-        const volText = document.getElementById('volText');
-        const bassBar = document.getElementById('bassBar');
-        const bassText = document.getElementById('bassText');
-        const calibrateBtn = document.getElementById('calibrateBtn');
-        const calibrateStatus = document.getElementById('calibrateStatus');
+    <footer class="footer">
+        <span data-i18n="footer.unofficial">Unofficial project, not affiliated with Logitech.</span>
+        <span>v{{ version }}</span>
+    </footer>
 
-        async function requestJson(url, options = {}) {
-            let response;
-            try {
-                response = await fetch(url, options);
-            } catch (error) {
-                throw new Error(`Network error: ${error.message || 'local server unavailable'}`);
-            }
+    <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
-            const text = await response.text();
-            let data = null;
-            if (text) {
-                try {
-                    data = JSON.parse(text);
-                } catch {
-                    const snippet = text.replace(/\s+/g, ' ').trim().slice(0, 120);
-                    throw new Error(
-                        response.ok
-                            ? `Invalid JSON response: ${snippet || 'empty body'}`
-                            : `HTTP ${response.status}: ${snippet || response.statusText || 'request failed'}`
-                    );
-                }
-            }
+    <dialog id="confirm" aria-labelledby="confirmTitle">
+        <h2 id="confirmTitle"></h2>
+        <p id="confirmBody"></p>
+        <div class="dialog-actions">
+            <button type="button" id="confirmCancel" data-i18n="confirm.cancel">Cancel</button>
+            <button type="button" id="confirmOk"></button>
+        </div>
+    </dialog>
 
-            if (!response.ok) {
-                throw new Error(data?.error || data?.message || `HTTP ${response.status}: ${response.statusText || 'request failed'}`);
-            }
-
-            return data;
-        }
-
-        async function sendCommand(command) {
-            try {
-                const data = await requestJson(`/api/${command}`, { method: 'POST' });
-                if (data?.success) {
-                    statusText.innerText = `Command sent: ${command}`;
-                    statusText.style.color = 'var(--good)';
-                    if (command === 'factory_reset') markPreferredInput('');
-                    setTimeout(updateStatus, 350);
-                } else {
-                    throw new Error(data?.error || 'Command failed');
-                }
-            } catch (error) {
-                statusText.innerText = `Error: ${error.message}`;
-                statusText.style.color = 'var(--bad)';
-            }
-        }
-
-        function confirmAction(command, message) {
-            if (confirm(message)) sendCommand(command);
-        }
-
-        function markPreferredInput(input) {
-            document.querySelectorAll('.segmented button').forEach(button => button.classList.remove('recommended'));
-            const target = {
-                aux: document.getElementById('inputAux'),
-                usb: document.getElementById('inputUsb'),
-                bluetooth: document.getElementById('inputBluetooth')
-            }[input];
-            if (target) target.classList.add('recommended');
-        }
-
-        function setHostMediaSupport(isSupported) {
-            hostMediaCard.setAttribute('aria-disabled', String(!isSupported));
-            hostMediaButtons.forEach(button => {
-                button.disabled = !isSupported;
-                button.title = isSupported ? '' : 'Host media keys are not supported on this platform.';
-            });
-            hostMediaUnsupported.classList.toggle('visible', !isSupported);
-        }
-
-        async function updateStatus() {
-            try {
-                const data = await requestJson('/api/status');
-                if (!data) return;
-                connectionStatus.innerText = data.connected ? 'Connected' : data.connectionState || 'Disconnected';
-                connectionStatus.className = `pill ${data.connected ? 'good' : 'bad'}`;
-                networkMode.innerText = data.networkMode === 'lan' ? 'LAN enabled' : 'Local only';
-                preferredInput.innerText = `${(data.preferredInput || 'aux').toUpperCase()} recommended`;
-                markPreferredInput(data.preferredInput || 'aux');
-
-                const vMax = (data.volumeMax ?? 15) || 15;
-                const bMax = (data.bassMax ?? 15) || 15;
-
-                if (data.volume != null) {
-                    volBar.style.width = `${(data.volume / vMax) * 100}%`;
-                    volText.innerText = `${data.volume} / ${vMax}`;
-                } else {
-                    volBar.style.width = '0%';
-                    volText.innerText = `— / ${vMax}`;
-                }
-
-                if (data.bass != null) {
-                    bassBar.style.width = `${(data.bass / bMax) * 100}%`;
-                    bassText.innerText = `${data.bass} / ${bMax}`;
-                } else {
-                    bassBar.style.width = '0%';
-                    bassText.innerText = `— / ${bMax}`;
-                }
-
-                if (!data.connected && data.lastError) {
-                    statusText.innerText = data.lastError;
-                    statusText.style.color = 'var(--warn)';
-                }
-            } catch (error) {
-                connectionStatus.innerText = 'Offline';
-                connectionStatus.className = 'pill bad';
-                statusText.innerText = error.message;
-                statusText.style.color = 'var(--bad)';
-            }
-        }
-
-        async function loadCapabilities() {
-            try {
-                const data = await requestJson('/api/capabilities');
-                setupHint.innerText = data.setupHint || setupHint.innerText;
-                hostMediaTitle.innerText = data.platform === 'macos' ? 'Mac Media Controls' : 'Host Media Controls';
-                setHostMediaSupport(data.hostMediaKeysSupported !== false);
-                markPreferredInput(data.preferredInput || 'aux');
-            } catch (error) {
-                console.warn('Could not load platform capabilities:', error.message);
-            }
-        }
-
-        async function shutdownApp() {
-            if (!confirm('Close the Z407 web server? This browser page will stop working.')) return;
-            try {
-                await requestJson('/api/shutdown', { method: 'POST' });
-                document.body.innerHTML = '<main class="shell"><section class="card"><h1>Server closed</h1><p class="subtitle">You can close this tab now.</p></section></main>';
-            } catch (error) {
-                alert(`Error shutting down: ${error.message}`);
-            }
-        }
-
-        async function calibrate() {
-            if (!confirm('Send vol and bass to minimum? This takes ~5 seconds and will change your volume.')) return;
-            calibrateBtn.disabled = true;
-            calibrateStatus.innerText = 'Calibrating…';
-            calibrateStatus.style.color = 'var(--warn)';
-            try {
-                const data = await requestJson('/api/calibrate', { method: 'POST' });
-                if (data?.success) {
-                    calibrateStatus.innerText = 'Calibrated — volume and bass are now at 0.';
-                    calibrateStatus.style.color = 'var(--good)';
-                    setTimeout(updateStatus, 300);
-                } else {
-                    throw new Error(data?.error || 'Calibration failed');
-                }
-            } catch (error) {
-                calibrateStatus.innerText = `Error: ${error.message}`;
-                calibrateStatus.style.color = 'var(--bad)';
-            } finally {
-                calibrateBtn.disabled = false;
-            }
-        }
-
-        loadCapabilities();
-        updateStatus();
-        setInterval(updateStatus, 5000);
-    </script>
+    <script type="application/json" id="i18n">{{ i18n|tojson }}</script>
+    <script src="/static/app.js"></script>
 </body>
 </html>

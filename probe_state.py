@@ -24,29 +24,13 @@ from bleak import BleakClient, BleakScanner
 from bleak.backends.characteristic import BleakGATTCharacteristic
 from bleak.exc import BleakBluetoothNotAvailableError, BleakError
 
-SERVICE_UUID  = "0000fdc2-0000-1000-8000-00805f9b34fb"
-COMMAND_UUID  = "c2e758b9-0e78-41e0-b0cb-98a593193fc5"
-RESPONSE_UUID = "b84ac9c6-29c5-46d4-bba1-9d534784330f"
-
-Z407_NAME_MARKERS = ("z407", "zs283")
-
-
-def is_z407_like(device) -> bool:
-    name = (getattr(device, "name", "") or "").casefold()
-    if any(m in name for m in Z407_NAME_MARKERS):
-        return True
-    metadata = getattr(device, "metadata", {}) or {}
-    uuids = metadata.get("uuids", []) or metadata.get("service_uuids", [])
-    return any(str(u).casefold() == SERVICE_UUID for u in uuids)
+from z407_ble import COMMAND_UUID, RESPONSE_UUID, is_z407_device
 
 
 async def probe(scan_duration: float = 8.0, listen_seconds: float = 4.0) -> int:
     print(f"Scanning for Z407 ({scan_duration:g}s)...")
     try:
-        devices = await BleakScanner.discover(timeout=scan_duration, service_uuids=[SERVICE_UUID])
-        if not devices:
-            devices = await BleakScanner.discover(timeout=scan_duration)
-        candidates = [d for d in devices if is_z407_like(d)]
+        device = await BleakScanner.find_device_by_filter(is_z407_device, timeout=scan_duration)
     except BleakBluetoothNotAvailableError as exc:
         print(f"Bluetooth unavailable: {exc}")
         return 3
@@ -54,11 +38,10 @@ async def probe(scan_duration: float = 8.0, listen_seconds: float = 4.0) -> int:
         print(f"Scan failed: {exc}")
         return 4
 
-    if not candidates:
+    if device is None:
         print("No Z407 found.")
         return 2
 
-    device = candidates[0]
     print(f"Found: {device.name!r} ({device.address})\n")
 
     received: list[tuple[str, bytes]] = []  # (phase, raw)

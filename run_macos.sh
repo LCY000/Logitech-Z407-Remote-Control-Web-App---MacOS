@@ -32,7 +32,14 @@ if ! command -v python >/dev/null 2>&1; then
   source venv/bin/activate
 fi
 
-pip install -r requirements.txt
+# Install dependencies only when requirements.txt changed, so everyday launches
+# are fast and work without an internet connection.
+REQUIREMENTS_HASH="$(shasum requirements.txt | cut -d' ' -f1)"
+REQUIREMENTS_STAMP="venv/.requirements-installed"
+if [ ! -f "${REQUIREMENTS_STAMP}" ] || [ "$(cat "${REQUIREMENTS_STAMP}")" != "${REQUIREMENTS_HASH}" ]; then
+  python -m pip install -r requirements.txt
+  echo "${REQUIREMENTS_HASH}" > "${REQUIREMENTS_STAMP}"
+fi
 
 if [ "${1:-}" = "--debug-scan" ]; then
   shift

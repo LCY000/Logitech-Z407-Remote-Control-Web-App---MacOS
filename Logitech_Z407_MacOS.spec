@@ -1,4 +1,8 @@
 # -*- mode: python ; coding: utf-8 -*-
+import sys
+
+sys.path.insert(0, SPECPATH)
+from z407_version import __version__
 
 
 a = Analysis(
@@ -6,7 +10,7 @@ a = Analysis(
     pathex=[],
     binaries=[],
     datas=[('templates', 'templates'), ('assets', 'assets'), ('static', 'static')],
-    hiddenimports=['pyscreeze', 'PIL'],
+    hiddenimports=[],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -25,7 +29,7 @@ exe = EXE(
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=True,
+    upx=False,
     upx_exclude=[],
     runtime_tmpdir=None,
     console=False,
@@ -40,7 +44,7 @@ coll = COLLECT(
     a.binaries,
     a.datas,
     strip=False,
-    upx=True,
+    upx=False,
     upx_exclude=[],
     name='Logitech Z407 Remote Control',
 )
@@ -50,9 +54,12 @@ app = BUNDLE(
     icon='assets/icon_app.icns',
     bundle_identifier='com.lcy000.logitech-z407-remote-control',
     info_plist={
-        'CFBundleShortVersionString': '0.1.0',
-        'CFBundleVersion': '0.1.0',
+        'CFBundleShortVersionString': __version__,
+        'CFBundleVersion': __version__,
         'LSUIElement': True,
+        'LSApplicationCategoryType': 'public.app-category.utilities',
+        'NSHighResolutionCapable': True,
+        'LSMinimumSystemVersion': '11.0',
         'NSBluetoothAlwaysUsageDescription': 'This app uses Bluetooth to find and control your Logitech Z407 speaker.',
         'NSBluetoothPeripheralUsageDescription': 'This app uses Bluetooth to find and control your Logitech Z407 speaker.',
     },

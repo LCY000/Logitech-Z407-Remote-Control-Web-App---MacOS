@@ -1,4 +1,4 @@
-quart
-bleak
-pyautogui
-rumps
+quart>=0.20,<1
+bleak>=3.0,<4
+rumps>=0.4,<0.5
+pyobjc-framework-Quartz>=10

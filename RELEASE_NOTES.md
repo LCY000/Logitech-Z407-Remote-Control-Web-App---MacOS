@@ -1,12 +1,31 @@
 # Release Notes for Mac Users
 
+## What's New in 0.3.0
+
+- New interface built around a volume dial. After calibrating once you can drag the ring, or tap a bass segment, to jump to an exact level.
+- Hold − / + to keep stepping. Keyboard shortcuts: ↑ ↓ volume, ← → bass, M mute.
+- English and Traditional Chinese, switchable in the page. Light and dark themes follow the system.
+- The active input is now shown after you switch it.
+- The app reconnects on its own when the speaker is powered off and on again. Previously the page kept saying "Connected".
+- Calibration now fails with a clear message when the speaker does not respond (it ignores level changes while no audio is playing), instead of silently showing wrong numbers.
+- Security: other websites can no longer send commands to the app, and in LAN mode other devices cannot factory reset the speaker or quit the app.
+- Opening the app twice no longer starts a second copy, and a busy port is reported instead of failing silently.
+- Quitting now disconnects from the speaker cleanly.
+- The page opens in English by default; the language you pick is remembered by the app, even in another browser.
+- A one-time reminder to calibrate appears on first use.
+- Smaller app: media keys are sent through macOS directly, so `pyautogui` and Pillow are no longer bundled.
+
+After updating, calibrate once from **Speaker setup** so the dial shows the right level.
+
 ## What to Download
 
 Download the zipped Mac app from GitHub Releases:
 
 ```text
-Logitech-Z407-Remote-Control-Web-App-MacOS.zip
+Logitech-Z407-Remote-Control-v0.3.0-macOS-arm64.zip
 ```
+
+This build is for Apple Silicon Macs (M1 and later).
 
 After extracting it, open:
 
@@ -18,7 +37,7 @@ This is the easiest option for most Mac users. They do not need to clone the rep
 
 ## First Launch
 
-macOS may warn that the app was downloaded from the internet. If that happens, use right-click > Open for the first launch.
+The app is not notarized, so macOS blocks the first launch. Open it once, then go to System Settings > Privacy & Security and click **Open Anyway**. On macOS 14 or earlier, right-click the app and choose Open instead.
 
 The app may also ask for Bluetooth permission. Bluetooth permission is required because the app controls the Z407 over BLE.
 
@@ -36,7 +55,7 @@ Bass control appears to have 15 adjustment steps based on local testing.
 
 ## How to Quit
 
-Use the web UI's `Quit` button.
+Use the web UI's `Quit app` button, or the menu bar icon.
 
 If running from Terminal, `Ctrl+C` is also safe.
 

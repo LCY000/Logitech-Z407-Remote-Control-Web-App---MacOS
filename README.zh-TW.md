@@ -10,18 +10,22 @@
 
 ## 功能特色
 
-- 完整 Z407 喇叭控制：靜音、音量、低音、輸入來源切換（AUX / USB / 藍牙）、藍牙配對、恢復出廠設定
-- 即時音量與低音顯示：每次 BLE 確認回應都會更新步數計數（音量：32 格、低音：15 格），可用 Calibrate 將兩者歸零保持準確
-- 狀態持久化：重啟 app 後音量與低音數值仍然保留，校正一次就能長期使用
-- macOS 選單列圖示：關掉瀏覽器分頁後伺服器仍在背景安靜運行，隨時可從選單列重新開啟介面
-- 手機遙控：啟用 LAN 模式後，同一個 Wi-Fi 下的手機也可以打開同一個網頁介面
-- Mac 媒體控制：播放／暫停、上一首／下一首、音量、靜音，全部在同一個介面操作
+- 完整 Z407 喇叭控制：靜音、音量、低音、輸入來源切換（AUX / USB / 藍牙）、藍牙配對、恢復原廠設定
+- 可以拖曳的音量旋鈕：校正一次後，app 就知道目前的位置（音量 32 格、低音 15 格），可以拖曳圓環或點低音格直接跳到指定大小
+- 按住 − / + 可以連續調整，也可以用鍵盤操作（↑ ↓ 音量、← → 低音、M 靜音）
+- 顯示目前的輸入來源，重啟 app 後仍然記得音量、低音與輸入來源
+- 喇叭斷電再開機後會自動重新連線
+- 介面有英文和繁體中文，可以在頁面上切換，並支援淺色與深色模式
+- macOS 選單列圖示：關掉瀏覽器分頁後 app 仍在背景安靜執行，隨時可從選單列重新開啟頁面
+- 手機遙控：啟用 LAN 模式後，同一個 Wi-Fi 下的手機也可以打開同一個頁面
+- Mac 媒體鍵：播放／暫停、上一首／下一首、音量、靜音，都在同一個頁面操作
 - 完全在 Mac 本機執行，不需要網路連線，資料不會離開你的電腦
-- 響應式介面，桌面與手機瀏覽器都適用
 
 ## 介面截圖
 
-![Z407 Control 網頁介面](assets/photo_1.png)
+<p align="center">
+  <img src="assets/photo_1.png" alt="Z407 Control 網頁介面" width="640">
+</p>
 
 ## 快速開始
 
@@ -29,7 +33,14 @@
 
 從 [Releases 頁面](../../releases) 下載 `Logitech Z407 Remote Control.app`，解壓縮後開啟。可以把它拖到**應用程式**資料夾，方便日後像一般 Mac app 一樣啟動。
 
-第一次開啟時 macOS 可能會顯示安全性提示，在 app 上按右鍵選擇**開啟**即可。
+下載檔是給 Apple Silicon 的 Mac（M1 以後）使用的。Intel Mac 請改從 Terminal 執行，或依照下面的說明自行打包。
+
+這個 app 沒有經過 Apple 公證，所以 macOS 會擋下第一次開啟。請這樣放行：
+
+1. 先開啟 app 一次，關掉警告視窗。
+2. 到**系統設定 > 隱私權與安全性**，往下捲，按**仍要打開**。
+
+macOS 14 或更早的版本，也可以在 app 上按右鍵選擇**開啟**。如果 macOS 說 app 已損毀，請在 Terminal 執行 `xattr -cr "/Applications/Logitech Z407 Remote Control.app"`，然後再開啟一次。
 
 app 開啟後會在 macOS 選單列顯示圖示，點擊即可重新開啟瀏覽器介面或關閉 app。
 
@@ -40,7 +51,7 @@ chmod +x run_macos.sh
 ./run_macos.sh
 ```
 
-然後在瀏覽器打開 `http://127.0.0.1:8765`。`run_macos.sh` 會自動建立虛擬環境、安裝套件並啟動伺服器。
+然後在瀏覽器打開 `http://127.0.0.1:8765`。`run_macos.sh` 會自動建立虛擬環境，第一次執行時安裝套件（之後只有 `requirements.txt` 變動時才會重新安裝），然後啟動 app。
 
 ### 從原始碼打包
 
@@ -48,7 +59,7 @@ chmod +x run_macos.sh
 ./build_macos_app.sh
 ```
 
-打包完成的 app 會在 `release/Logitech Z407 Remote Control.app`。
+這個腳本會先跑測試，再把 app 輸出到 `release/Logitech Z407 Remote Control.app`，並產生一個帶版號的 zip 方便分享。打包出來的 app 會對應你這台 Mac 的處理器架構。
 
 ## 建議設定
 
@@ -56,7 +67,9 @@ chmod +x run_macos.sh
 
 ## 安全退出
 
-在網頁介面按 **Quit**，或點擊選單列圖示選擇 **Quit**，兩種方式都能正常關閉 app。
+在網頁介面按**結束程式**，或點擊選單列圖示選擇 **Quit**，兩種方式都能正常關閉 app，並中斷與喇叭的連線。
+
+重複開啟 app 不會啟動第二份，只會打開已經在執行的那一份的頁面。
 
 從 Terminal 執行時，按 `Ctrl+C` 退出。避免按 `Ctrl+Z`，那會讓程序暫停而不是關閉。
 
@@ -78,7 +91,15 @@ http://192.168.1.35:8765
 
 在同一個 Wi-Fi 下的手機上打開這個網址即可使用。
 
-> **備注：** LAN 模式尚未在所有環境下親自測試。可能需要在 Mac 防火牆設定中允許 8765 埠的連入連線。
+可以把這個頁面加到手機主畫面，像 app 一樣使用。
+
+> **備註：** LAN 模式尚未在所有環境下親自測試。可能需要在 Mac 防火牆設定中允許 8765 埠的連入連線。
+
+## 安全性
+
+- 預設只監聽 `127.0.0.1`，Mac 以外的裝置連不進來。
+- 其他網站無法操控你的喇叭：app 會拒絕不是從自己頁面送出的請求。
+- LAN 模式沒有密碼。同一個網路上的任何人都能調整音量、低音與輸入來源，也能按 Mac 媒體鍵，所以請只在信任的網路上使用。恢復原廠設定和結束程式不開放給其他裝置，只有執行 app 的那台 Mac 可以操作。
 
 ## macOS 權限
 
@@ -98,8 +119,14 @@ macOS 可能會要求：
 ./run_macos.sh --lan --port 9090
 ./run_macos.sh --preferred-input aux
 ./run_macos.sh --verbose
+./run_macos.sh --no-browser
+./run_macos.sh --demo
 ./run_macos.sh --debug-scan --duration 8
 ```
+
+- `--no-browser`：啟動時不自動開啟瀏覽器分頁。
+- `--demo`：模擬一台喇叭，沒有 Z407 或藍牙也能試用或開發介面。
+- 在網址後面加上 `?lang=en` 或 `?lang=zh-TW`，可以指定頁面語言。
 
 預設值：
 
@@ -140,6 +167,15 @@ python -m pip install -r requirements-dev.txt
 pytest -q
 ```
 
+專案結構：
+
+- `app.py`：網頁伺服器、喇叭連線與選單列程式
+- `z407_ble.py`、`z407_config.py`、`z407_platform.py`：藍牙識別碼、命令列選項、Mac 媒體鍵
+- `templates/index.html`、`static/app.css`、`static/app.js`：網頁介面
+- `static/i18n.json`：所有介面文字。要新增語言，加入一組相同 key 的翻譯即可，測試會檢查有沒有漏掉的 key。
+
+開發介面時可以用 `python app.py --demo`，不需要接喇叭。
+
 ## 致謝
 
 **macOS 版本：**
@@ -154,6 +190,12 @@ https://github.com/freundTech/logi-z407-reverse-engineering
 
 **上游專案：**
 此版本改編自 `Androrama/Logitech-Z407-Remote-Control-Web-App---Linux`。
+
+## 授權
+
+這個 repository 的程式碼以 [MIT License](LICENSE) 釋出。
+
+本專案最初是從 Androrama 的 Linux 網頁 app fork 而來。該專案聲明可以免費使用與分享、並保留出處，但沒有正式的授權檔。本專案也使用了 freundTech 的協定文件。這些成果屬於原作者，重新使用本專案時請保留上面的致謝。
 
 ## 免責聲明
 

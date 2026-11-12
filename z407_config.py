@@ -20,6 +20,8 @@ class RuntimeConfig:
     lan_enabled: bool
     preferred_input: str
     quiet_logs: bool = True
+    open_browser: bool = True
+    demo: bool = False
 
     @property
     def local_url(self) -> str:
@@ -32,9 +34,11 @@ class RuntimeConfig:
 def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Logitech Z407 Remote Control Server")
     parser.add_argument("--ip", type=str, default=None, help="Host IP to bind to")
-    parser.add_argument("--port", type=int, default=DEFAULT_PORT, help=f"Port to bind to (default: {DEFAULT_PORT})")
+    parser.add_argument("--port", type=_port_number, default=DEFAULT_PORT, help=f"Port to bind to (default: {DEFAULT_PORT})")
     parser.add_argument("--lan", action="store_true", help="Expose the web app to other devices on the local network")
     parser.add_argument("--verbose", action="store_true", help="Show HTTP access logs and repeated background scan messages")
+    parser.add_argument("--no-browser", action="store_true", help="Do not open the browser automatically on launch")
+    parser.add_argument("--demo", action="store_true", help="Simulate a speaker (no Bluetooth needed) for UI development")
     parser.add_argument(
         "--preferred-input",
         choices=("aux", "usb", "bluetooth"),
@@ -42,6 +46,13 @@ def build_arg_parser() -> argparse.ArgumentParser:
         help="Input source to emphasize in the UI",
     )
     return parser
+
+
+def _port_number(value: str) -> int:
+    port = int(value)
+    if not 1 <= port <= 65535:
+        raise argparse.ArgumentTypeError("port must be between 1 and 65535")
+    return port
 
 
 def build_runtime_config(argv: list[str] | None = None) -> RuntimeConfig:
@@ -60,6 +71,8 @@ def build_runtime_config(argv: list[str] | None = None) -> RuntimeConfig:
         lan_enabled=lan_enabled,
         preferred_input=args.preferred_input,
         quiet_logs=not args.verbose,
+        open_browser=not args.no_browser,
+        demo=args.demo,
     )
 
 
