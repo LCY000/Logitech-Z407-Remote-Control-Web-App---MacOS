@@ -10,3 +10,16 @@ release/
 *.spec
 !Logitech_Z407_MacOS.spec
 .worktrees/
+
+# AI 工具的暫存與本機設定
+.superpowers/
+.claude/settings.local.json
+
+# 編輯器與其他本機雜項
+.vscode/
+.idea/
+*.log
+.env
+
+# 個人開發用的設計與計畫文件
+docs/superpowers/
